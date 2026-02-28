@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.12.0">
+  <bpmn:collaboration id="Collaboration_4">
+    <bpmn:participant id="Participant_4" name="Entartes School - Availability Setup" processRef="Process_4" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_4" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_4">
+      <bpmn:lane id="Lane_Teacher" name="Teacher">
+        <bpmn:flowNodeRef>StartEvent_Period</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ProposeSlots</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Admin" name="Management">
+        <bpmn:flowNodeRef>Task_ReviewMap</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Visible</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Period" name="New Academic Year Starts">
+      <bpmn:outgoing>Flow_A1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_ProposeSlots" name="Submit Weekly Availability Slots">
+      <bpmn:incoming>Flow_A1</bpmn:incoming>
+      <bpmn:outgoing>Flow_A2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReviewMap" name="Audit and Validate Global Map">
+      <bpmn:incoming>Flow_A2</bpmn:incoming>
+      <bpmn:outgoing>Flow_A3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Visible" name="Vacancy Published for Parents">
+      <bpmn:incoming>Flow_A3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_A1" sourceRef="StartEvent_Period" targetRef="Task_ProposeSlots" />
+    <bpmn:sequenceFlow id="Flow_A2" sourceRef="Task_ProposeSlots" targetRef="Task_ReviewMap" />
+    <bpmn:sequenceFlow id="Flow_A3" sourceRef="Task_ReviewMap" targetRef="EndEvent_Visible" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_4">
+    <bpmndi:BPMNPlane id="BPMNPlane_4" bpmnElement="Collaboration_4">
+      <bpmndi:BPMNShape id="Participant_4_di" bpmnElement="Participant_4" isHorizontal="true">
+        <dc:Bounds x="120" y="80" width="500" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Admin_di" bpmnElement="Lane_Admin" isHorizontal="true">
+        <dc:Bounds x="150" y="230" width="470" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Teacher_di" bpmnElement="Lane_Teacher" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="470" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Period_di" bpmnElement="StartEvent_Period">
+        <dc:Bounds x="200" y="130" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ProposeSlots_di" bpmnElement="Task_ProposeSlots">
+        <dc:Bounds x="280" y="108" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReviewMap_di" bpmnElement="Task_ReviewMap">
+        <dc:Bounds x="280" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Visible_di" bpmnElement="EndEvent_Visible">
+        <dc:Bounds x="430" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="415" y="318" width="68" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_A1_di" bpmnElement="Flow_A1">
+        <di:waypoint x="236" y="148" />
+        <di:waypoint x="280" y="148" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A2_di" bpmnElement="Flow_A2">
+        <di:waypoint x="330" y="188" />
+        <di:waypoint x="330" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A3_di" bpmnElement="Flow_A3">
+        <di:waypoint x="380" y="300" />
+        <di:waypoint x="430" y="300" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

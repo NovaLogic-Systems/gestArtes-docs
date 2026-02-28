@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_2" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collaboration_2">
+    <bpmn:participant id="Participant_2" name="Entartes School - Double Validation Cycle" processRef="Process_2" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_2" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_2">
+      <bpmn:lane id="Lane_Professor" name="Teacher">
+        <bpmn:flowNodeRef>StartEvent_Lesson</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ConfirmLesson</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Parent" name="Student (Or Parent)">
+        <bpmn:flowNodeRef>Task_VerifyExecution</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Admin" name="Management">
+        <bpmn:flowNodeRef>Task_FinalApproval</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Billed</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Lesson" name="Lesson Completed">
+      <bpmn:outgoing>Flow_L1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_ConfirmLesson" name="Confirm Coaching Conclusion">
+      <bpmn:incoming>Flow_L1</bpmn:incoming>
+      <bpmn:outgoing>Flow_L2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_VerifyExecution" name="Verify Execution (Double Validation)">
+      <bpmn:incoming>Flow_L2</bpmn:incoming>
+      <bpmn:outgoing>Flow_L3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_FinalApproval" name="Final Management Audit">
+      <bpmn:incoming>Flow_L3</bpmn:incoming>
+      <bpmn:outgoing>Flow_L4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Billed" name="Ready for Invoicing">
+      <bpmn:incoming>Flow_L4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_L1" sourceRef="StartEvent_Lesson" targetRef="Task_ConfirmLesson" />
+    <bpmn:sequenceFlow id="Flow_L2" sourceRef="Task_ConfirmLesson" targetRef="Task_VerifyExecution" />
+    <bpmn:sequenceFlow id="Flow_L3" sourceRef="Task_VerifyExecution" targetRef="Task_FinalApproval" />
+    <bpmn:sequenceFlow id="Flow_L4" sourceRef="Task_FinalApproval" targetRef="EndEvent_Billed" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_2">
+    <bpmndi:BPMNPlane id="BPMNPlane_2" bpmnElement="Collaboration_2">
+      <bpmndi:BPMNShape id="Participant_2_di" bpmnElement="Participant_2" isHorizontal="true">
+        <dc:Bounds x="120" y="80" width="600" height="450" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Professor_di" bpmnElement="Lane_Professor" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="570" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Parent_di" bpmnElement="Lane_Parent" isHorizontal="true">
+        <dc:Bounds x="150" y="230" width="570" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Admin_di" bpmnElement="Lane_Admin" isHorizontal="true">
+        <dc:Bounds x="150" y="380" width="570" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Lesson_di" bpmnElement="StartEvent_Lesson">
+        <dc:Bounds x="200" y="130" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ConfirmLesson_di" bpmnElement="Task_ConfirmLesson">
+        <dc:Bounds x="280" y="108" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_VerifyExecution_di" bpmnElement="Task_VerifyExecution">
+        <dc:Bounds x="280" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FinalApproval_di" bpmnElement="Task_FinalApproval">
+        <dc:Bounds x="420" y="410" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Billed_di" bpmnElement="EndEvent_Billed">
+        <dc:Bounds x="560" y="432" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_L1_di" bpmnElement="Flow_L1">
+        <di:waypoint x="236" y="148" />
+        <di:waypoint x="280" y="148" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L2_di" bpmnElement="Flow_L2">
+        <di:waypoint x="330" y="188" />
+        <di:waypoint x="330" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L3_di" bpmnElement="Flow_L3">
+        <di:waypoint x="380" y="300" />
+        <di:waypoint x="470" y="300" />
+        <di:waypoint x="470" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_L4_di" bpmnElement="Flow_L4">
+        <di:waypoint x="520" y="450" />
+        <di:waypoint x="560" y="450" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

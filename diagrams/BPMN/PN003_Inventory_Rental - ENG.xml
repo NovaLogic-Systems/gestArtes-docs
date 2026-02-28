@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_3" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.12.0">
+  <bpmn:collaboration id="Collaboration_3">
+    <bpmn:participant id="Participant_3" name="Digital Inventory - Peer-to-Peer Rental" processRef="Process_3" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_3" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_3">
+      <bpmn:lane id="Lane_Requester" name="Interested Party">
+        <bpmn:flowNodeRef>Task_ManualPayment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Received</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RequestItem</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>StartEvent_Interest</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Owner" name="Item Owner (School)">
+        <bpmn:flowNodeRef>Task_ApproveRequest</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:userTask id="Task_ApproveRequest" name="Analyze Request and Define Terms">
+      <bpmn:incoming>Flow_I2</bpmn:incoming>
+      <bpmn:outgoing>Flow_I3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ManualPayment" name="Execute Payment via External Gateway or Cash">
+      <bpmn:incoming>Flow_I3</bpmn:incoming>
+      <bpmn:outgoing>Flow_I4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Received" name="Item Acquired">
+      <bpmn:incoming>Flow_I4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_I1" sourceRef="StartEvent_Interest" targetRef="Task_RequestItem" />
+    <bpmn:sequenceFlow id="Flow_I2" sourceRef="Task_RequestItem" targetRef="Task_ApproveRequest" />
+    <bpmn:sequenceFlow id="Flow_I3" sourceRef="Task_ApproveRequest" targetRef="Task_ManualPayment" />
+    <bpmn:sequenceFlow id="Flow_I4" sourceRef="Task_ManualPayment" targetRef="EndEvent_Received" />
+    <bpmn:userTask id="Task_RequestItem" name="Express Interest in Article">
+      <bpmn:incoming>Flow_I1</bpmn:incoming>
+      <bpmn:outgoing>Flow_I2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:startEvent id="StartEvent_Interest" name="Needs Costume/Accessory">
+      <bpmn:outgoing>Flow_I1</bpmn:outgoing>
+    </bpmn:startEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_3">
+      <bpmndi:BPMNShape id="Participant_3_di" bpmnElement="Participant_3" isHorizontal="true">
+        <dc:Bounds x="120" y="80" width="960" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Owner_di" bpmnElement="Lane_Owner" isHorizontal="true">
+        <dc:Bounds x="150" y="230" width="930" height="150" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Requester_di" bpmnElement="Lane_Requester" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="930" height="150" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ApproveRequest_di" bpmnElement="Task_ApproveRequest">
+        <dc:Bounds x="420" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ManualPayment_di" bpmnElement="Task_ManualPayment">
+        <dc:Bounds x="560" y="108" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Received_di" bpmnElement="EndEvent_Received">
+        <dc:Bounds x="980" y="130" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RequestItem_di" bpmnElement="Task_RequestItem">
+        <dc:Bounds x="300" y="108" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Interest_di" bpmnElement="StartEvent_Interest">
+        <dc:Bounds x="212" y="130" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="185" y="166" width="89" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_I1_di" bpmnElement="Flow_I1">
+        <di:waypoint x="248" y="148" />
+        <di:waypoint x="300" y="148" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I2_di" bpmnElement="Flow_I2">
+        <di:waypoint x="350" y="188" />
+        <di:waypoint x="350" y="300" />
+        <di:waypoint x="420" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I3_di" bpmnElement="Flow_I3">
+        <di:waypoint x="520" y="300" />
+        <di:waypoint x="540" y="300" />
+        <di:waypoint x="540" y="148" />
+        <di:waypoint x="560" y="148" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I4_di" bpmnElement="Flow_I4">
+        <di:waypoint x="660" y="148" />
+        <di:waypoint x="980" y="148" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

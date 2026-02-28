@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_5" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.12.0">
+  <bpmn:collaboration id="Collaboration_5">
+    <bpmn:participant id="Participant_5" name="Community Marketplace - Student to Student Exchange" processRef="Process_5" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_5" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_5">
+      <bpmn:lane id="Lane_Buyer" name="Interested">
+        <bpmn:flowNodeRef>Start_Marketplace</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_InitiateContact</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PerformPayment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Success</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Seller" name="Item Owner">
+        <bpmn:flowNodeRef>Task_NegotiateTerms</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Marketplace" name="Interest in Marketplace Item">
+      <bpmn:outgoing>Flow_M1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_InitiateContact" name="Send Interest Request">
+      <bpmn:incoming>Flow_M1</bpmn:incoming>
+      <bpmn:outgoing>Flow_M2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_NegotiateTerms" name="Confirm Terms of Exchange">
+      <bpmn:incoming>Flow_M2</bpmn:incoming>
+      <bpmn:outgoing>Flow_M3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_PerformPayment" name="Pay via External Gateway (or Cash)">
+      <bpmn:incoming>Flow_M3</bpmn:incoming>
+      <bpmn:outgoing>Flow_M4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_M1" sourceRef="Start_Marketplace" targetRef="Task_InitiateContact" />
+    <bpmn:sequenceFlow id="Flow_M2" sourceRef="Task_InitiateContact" targetRef="Task_NegotiateTerms" />
+    <bpmn:sequenceFlow id="Flow_M3" sourceRef="Task_NegotiateTerms" targetRef="Task_PerformPayment" />
+    <bpmn:sequenceFlow id="Flow_M4" sourceRef="Task_PerformPayment" targetRef="End_Success" />
+    <bpmn:endEvent id="End_Success" name="Transaction Completed">
+      <bpmn:incoming>Flow_M4</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_5">
+    <bpmndi:BPMNPlane id="BPMNPlane_5" bpmnElement="Collaboration_5">
+      <bpmndi:BPMNShape id="Participant_5_di" bpmnElement="Participant_5" isHorizontal="true">
+        <dc:Bounds x="120" y="80" width="700" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller" isHorizontal="true">
+        <dc:Bounds x="150" y="230" width="670" height="150" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="670" height="150" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Marketplace_di" bpmnElement="Start_Marketplace">
+        <dc:Bounds x="200" y="130" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_InitiateContact_di" bpmnElement="Task_InitiateContact">
+        <dc:Bounds x="280" y="108" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_NegotiateTerms_di" bpmnElement="Task_NegotiateTerms">
+        <dc:Bounds x="280" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PerformPayment_di" bpmnElement="Task_PerformPayment">
+        <dc:Bounds x="420" y="108" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Success_di" bpmnElement="End_Success">
+        <dc:Bounds x="692" y="130" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="679" y="92.5" width="61" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_M1_di" bpmnElement="Flow_M1">
+        <di:waypoint x="236" y="148" />
+        <di:waypoint x="280" y="148" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M2_di" bpmnElement="Flow_M2">
+        <di:waypoint x="330" y="188" />
+        <di:waypoint x="330" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M3_di" bpmnElement="Flow_M3">
+        <di:waypoint x="380" y="300" />
+        <di:waypoint x="470" y="300" />
+        <di:waypoint x="470" y="188" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M4_di" bpmnElement="Flow_M4">
+        <di:waypoint x="520" y="148" />
+        <di:waypoint x="692" y="148" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
