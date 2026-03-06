@@ -43,15 +43,16 @@
   - Se aluno faltar, sem avisar, é cobrado à mesma. Ao desmarcar, tem de dizer o motivo (ex: estar doente).
   - Aula Acrobatica - Podem ser partilhadas com o professor de Jazz (Dois professores a dar a mesma aula, pois tem duas componentes diferentes em Acrobática)
   - Aulas particulares (coaching prof individual)
-  - Gestão do tempo 
-
-### 3.1. Validação e Fluxo Pós-Coaching
-* Sistema de Dupla Validação:
+  - Gestão do tempo
+ 
   - Prazo máximo: 48h
   - Validação: Direção ou Coordenação confirma
- 
-  - ver prof disponivel, marcar coachings, coordenação/direção faz validação, 
- * Processo: (Pós-Coaching): Encarregado/Professor (confirma conclusão) -> Coordenação/Direção (Validam finalização) -> Entrada Automática (Tabela contabilística atualizada)
+
+### 3.1. Validação e Fluxo Pós-Coaching 
+* Sistema de Dupla Validação:
+  - Validação: Direção ou Coordenação confirma
+* Processo: (Pós-Coaching): Encarregado/Professor (confirma conclusão) -> Coordenação/Direção (Validam finalização) -> Entrada Automática (Tabela contabilística atualizada)
+  
 ## 4. Inventário Digital
 * Inventário Digital:
   - Gestão de Figurinos, Acessórios, Cenários (acessível a toda a comunidade escolar, exclusividade interna)
@@ -72,4 +73,5 @@
 
 ## 6. Outros Módulos e Funcionalidades Extras
 * Gerir Eventos
+
 * Perdidos e Achados
