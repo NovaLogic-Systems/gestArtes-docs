@@ -1,0 +1,47 @@
+\documentclass[12pt,a4paper]{report}
+
+% --- Encoding / language ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% --- Page layout ---
+\usepackage[a4paper,margin=2.5cm]{geometry}
+% --- Tables ---
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\begin{document}
+\begin{table}[H]
+\centering
+\caption{Description of stakeholders}
+\renewcommand{\arraystretch}{1}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3cm} X X >{\raggedright\arraybackslash}p{3cm}@{}}
+\toprule
+\textbf{(Stakeholders)} & \textbf{Interests} & \textbf{Responsibilities} & \textbf{Influence Level} \\
+\midrule
+Student &
+Check schedules and available spots; participate in classes and coaching sessions; access the digital inventory &
+Use the platform to schedule or check classes; confirm attendance; justify absences when applicable. &
+Low \\
+\\
+Parent & 
+Simple and quick scheduling of classes; transparent billing; communication with
+the school; student monitoring &
+Manage the student's account (if a minor); request and confirm coaching sessions; make appointments; track notifications and payments. &
+Medium \\
+\\
+Teacher & 
+Efficient availability management; simple class registration; coordination with studios; validation tracking &
+Enter availability; record taught class; confirm completion of coaching sessions; assist with schedule management &
+Medium \\
+\\
+School Board & 
+Financial control; coaching validation; studio profitability; general system supervision &
+Validate coaching requests and conclusions; define operating rules; supervise billing and reports &
+High \\
+ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\end{document}
