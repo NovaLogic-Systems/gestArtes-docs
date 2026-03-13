@@ -10,17 +10,10 @@ stateDiagram-v2
     Pending_Approval --> Cancelled_Timeout : System Event(48h passes without action)
     Pending_Approval --> Cancelled_Rejected : School Management Action(Rejects due to no vacancy)
 
-    %% Post-coaching flow
+    %% Post-coaching validation flow (Teacher or Student confirms, then Management finalises)
     Scheduled --> Completion_Confirmation_Pending : Lesson Completed
-
-    %% Single account model: parent and student use the same account
-    Completion_Confirmation_Pending --> Confirmed_By_Student_Account_And_Teacher : Student Account + Teacher confirm completion
-    Completion_Confirmation_Pending --> Confirmed_By_Student_Account_And_School_Management : Student Account + School Management confirm completion
-
-    %% Final validation required only when School Management is not already in co-confirmation
-    Confirmed_By_Student_Account_And_Teacher --> Finalization_Validation_Pending : School Management validates finalization
-    Finalization_Validation_Pending --> Finalized
-    Confirmed_By_Student_Account_And_School_Management --> Finalized
+    Completion_Confirmation_Pending --> Finalization_Validation_Pending : Teacher or Student Account(Confirms completion)
+    Finalization_Validation_Pending --> Finalized : Management Action(Validates finalisation)
 
     %% Automatic accounting update
     Finalized --> Accounting_Table_Updated : System Event(Automatic Entry)
@@ -37,3 +30,5 @@ stateDiagram-v2
     Cancelled_Rejected --> [*]
     Accounting_Table_Updated --> [*]
 ```
+
+
