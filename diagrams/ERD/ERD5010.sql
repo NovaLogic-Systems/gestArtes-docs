@@ -43,7 +43,7 @@ CREATE TABLE CoachingSession (
   EndTime               datetime NOT NULL, 
   StatusID              int NOT NULL, 
   FinalPrice            decimal(10, 2) NULL, 
-  ValidationRequestedAt datetime NULL CHECK(ValidationRequestedAt), 
+  ValidationRequestedAt datetime NULL, 
   CancellationReason    varchar(255) NULL, 
   PRIMARY KEY (SessionID));
 CREATE TABLE SessionTeacher (
@@ -174,3 +174,4 @@ ALTER TABLE MarketplaceItem ADD CONSTRAINT FKMarketplac318321 FOREIGN KEY (Statu
 ALTER TABLE CoachingSession ADD CONSTRAINT FKCoachingSe66160 FOREIGN KEY (StatusID) REFERENCES SessionStatus (StatusID);
 ALTER TABLE InventoryItem ADD CONSTRAINT FKInventoryI464627 FOREIGN KEY (CategoryID) REFERENCES ItemCategory (CategoryID);
 ALTER TABLE TeacherAbsence ADD CONSTRAINT FKTeacherAbs60475 FOREIGN KEY (TeacherID) REFERENCES [User] (UserID);
+
