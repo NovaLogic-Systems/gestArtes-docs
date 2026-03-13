@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-- [📋 Requirements](#-requirements)
+- [Requirements](#requirements)
   - [Entartes — Organização de Requisitos](Entartes.md)
     - [1. Contexto Global da Escola e Espaços](Entartes.md#1-contexto-global-da-escola-e-espaços)
     - [2. Aplicação WEB e Experiência do Utilizador (UX/UI)](Entartes.md#2-aplicação-web-e-experiência-do-utilizador-uxui)
@@ -18,7 +18,7 @@
     - [5. Financial & Reporting](requirements/BusinessRules.md#5-financial--reporting)
     - [6. Digital Inventory](requirements/BusinessRules.md#6-digital-inventory)
     - [7. Operational Constraints](requirements/BusinessRules.md#7-operational-constraints)
-- [📖 User Stories](UserStories.md)
+- [User Stories](UserStories.md)
   - [US-01: Create Coaching Initiative](UserStories.md#us-01-create-coaching-initiative)
   - [US-02: Approve Coaching Session](UserStories.md#us-02-approve-coaching-session)
   - [US-03: Schedule Coaching Session](UserStories.md#us-03-schedule-coaching-session)
@@ -36,8 +36,8 @@
   - [US-15: Request to Join Coaching Session](UserStories.md#us-15-request-to-join-coaching-session)
   - [US-16: Validate Session Adhesion Request](UserStories.md#us-16-validate-session-adhesion-request)
   - [US-17: Add Item to Community Marketplace](UserStories.md#us-17-add-item-to-community-marketplace)
-- [👥 Stakeholders](Stakeholders/)
-- [📊 Diagrams](#-diagrams)
+- [Stakeholders](Stakeholders/)
+- [Diagrams](#diagrams)
   - [Activity Diagram](diagrams/ACT/act.md)
   - [BPMN Diagrams](diagrams/BPMN/)
     - [PN001 — Coaching](diagrams/BPMN/PN001_Coaching%20-%20ENG.png)
@@ -49,6 +49,6 @@
   - [Sitemap](diagrams/Sitemap/sitemap.md)
   - [State Machine Diagram](diagrams/State%20Machine%20Diagram/statediagram.md)
   - [Use Case Diagram](diagrams/Use%20Case%20%20Diagram/Use%20Case%20Diagram%20of%20Entartes2.png)
-- [🗓️ Meetings](meetings/)
-- [🏆 Milestones](milestones/)
-- [🎨 Mockups](mockups/)
+- [Meetings](meetings/)
+- [Milestones](milestones/)
+- [Mockups](mockups/)
