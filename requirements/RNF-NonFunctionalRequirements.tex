@@ -1,0 +1,79 @@
+\documentclass[12pt,a4paper]{report}
+
+% --- Encoding / language ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+
+% --- Page layout ---
+\usepackage[a4paper,margin=2.5cm]{geometry}
+% --- Tables ---
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+
+\begin{document}
+
+\begin{table}[H]
+\centering
+\caption{Non-Functional Requirements}
+\begin{tabularx}{\textwidth}{@{} l l X @{}}
+\toprule
+\textbf{ID} & \textbf{Category} & \textbf{Description} \\
+\midrule
+RNF01 & Security & The interface should allow administrators to view available teachers in a simple and clear manner. 
+\\
+\\
+RNF02 & Usability & Simplified scheduling – The scheduling process should be quick and easy to use (Quick Access Actions).
+\\
+\\
+RNF03 & Usability &  Easy access to notifications – Events and notices should be easily accessible on the main page 
+\\
+RNF04 & Security & Available only by login – The system should only be accessible to authenticated users (security). 
+\\
+\\
+RNF05 & Accessibility & Accessible interface for all users – The platform should be simple and easy to navigate.
+\\
+\\
+RNF06 &  Maintainability  & The code should be modular to facilitate updates. 
+\\
+\\
+
+RNF07 & Auditability & There must be an audit trail of critical actions. 
+\\
+\\
+RNF08 & Data Integrity & The system must ensure that there are no duplicate bookings of studios or teachers, through transactional control in the database.
+\\
+\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Table of System Assumptions and Constraints}
+\begin{table}[H]
+\centering
+\caption{System assumptions  and Constraints}
+\begin{tabularx}{\textwidth}{@{} l l X @{}}
+\toprule
+\textbf{ID} & \textbf{Type} & \textbf{Description} \\
+\midrule
+
+
+\\
+R01 & Restriction & User data is provided by the school. 
+\\
+\\
+R02 & Restriction & Dependence an external chat platform for more detailed informal conversations with the school.
+\\
+\\
+PC01 & Assumption & It is assumed that there is an internet connection in the users' areas. 
+\\
+\\
+PC02 & Assumption & The project must be completed within the academic deadline.  
+\\
+\\
+\bottomrule
+\end{tabularx}
+\end{table}
+\end{document}
