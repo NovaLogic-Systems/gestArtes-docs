@@ -124,4 +124,9 @@
 **I want to** list an item on the Community Marketplace
 **So that** I can sell, rent, or gift it to other members of the school.
 
+---
 
+## US-18: Approve Teacher Availability Submissions
+**As Management**
+**I want to** review and approve teacher availability submissions
+**So that** only validated slots become visible and bookable by students and parents.
