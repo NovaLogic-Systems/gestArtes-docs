@@ -52,3 +52,4 @@
 - BR-28: Studio occupancy should be optimized to avoid unnecessary idle time.
 - BR-29: Teachers must explicitly define their availability in the system.
 - BR-30: Certain modalities may involve more than one teacher in a single session.
+- BR-31: Teacher availability submissions must be approved by Management before becoming visible for booking.
