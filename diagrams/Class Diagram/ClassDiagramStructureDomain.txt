@@ -1,0 +1,387 @@
+@startuml
+'============================================================
+' CLASS DIAGRAM STRUCTURE DOMAIN
+'============================================================
+skinparam classAttributeIconSize 0
+left to right direction
+'skinparam Shadowing false
+'skinparam linetype ortho
+skinparam roundcorner 8
+skinparam dpi 150
+skinparam ArrowColor #444444
+skinparam ArrowThickness 1
+skinparam RankSep 35
+skinparam NodeSep 30
+
+'========================
+' IDENTIDADE E PERFIS
+'========================
+class Role {
+    +int id
+    +string roleName
+    +string description
+}
+class User {
+    +int id
+    +string firstName
+    +string lastName
+    +string email
+    +string phoneNumber
+    +string photoUrl
+    +bool isActive
+    +datetime createdAt
+    +datetime updatedAt
+    +activate()
+    +deactivate()
+    +updateProfile()
+    +receiveNotification()
+}
+class UserProfile <<abstract>> {
+    +datetime createdAt
+    +datetime updatedAt
+    +activateProfile()
+    +deactivateProfile()
+}
+class StudentProfile {
+    +date birthDate
+    +string emergencyContact
+    +bool profileComplete
+    +completeProfile()
+}
+class TeacherProfile {
+    +string shortBio
+    +decimal baseHourlyRate
+    +defineAvailability()
+    +registerAbsence()
+}
+class ManagementProfile {
+    +string department
+    +validateBookingRequest()
+    +approveSessionFinalization()
+    +generateFinancialSummary()
+    +exportAccountingSummary()
+    +manageSchoolSchedule()
+}
+
+'========================
+' TEMPO / INTERVALOS
+'========================
+class TimeSlot {
+    +datetime startAt
+    +datetime endAt
+    +bool overlaps(other)
+}
+class DateRange {
+    +date startDate
+    +date endDate
+    +bool contains(date)
+}
+class AvailabilitySlot {
+    +int dayOfWeek
+    +TimeSlot slot
+    +bool recurring
+    +defineSlot()
+}
+class TeacherAbsence {
+    +DateRange period
+    +string reason
+    +registerAbsence()
+}
+
+'========================
+' CALENDÁRIO ESCOLAR
+'========================
+class AcademicYear {
+    +int id
+    +string label
+    +date startsOn
+    +date endsOn
+    +bool isActive
+}
+class SchoolScheduleEntry {
+    +int id
+    +datetime startsAt
+    +datetime endsAt
+    +string notes
+    +publish()
+    +archive()
+}
+
+'========================
+' ESPAÇOS E ESTILOS
+'========================
+class Studio {
+    +int id
+    +string studioName
+    +int capacity
+    +string floorType
+    +string materials
+    +bool isAvailable(startAt, endAt)
+    +bool isCompatibleWith(modality, SessionFormat)
+}
+class Modality {
+    +int id
+    +string modalityName
+}
+class SessionFormat {
+    +int id
+    +string SessionFormatName
+}
+
+'========================
+' COACHING
+'========================
+class Money {
+    +decimal amount
+    +string currency
+    +add(value)
+    +subtract(value)
+}
+class CoachingSession {
+    +int id
+    +datetime startTime
+    +datetime endTime
+    +Money finalPrice
+    +datetime validationRequestedAt
+    +datetime validationDeadline
+    +string cancellationReason
+    +int maxParticipants
+    +bool isExternal
+    +bool isOutsideStandardHours
+    +string status
+    +string format
+    +requestApproval()
+    +approve()
+    +reject()
+    +confirmCompletion()
+    +cancelWithReason()
+    +recordNoShow()
+    +calculateFinalPrice()
+    +addParticipant(student)
+}
+class SessionTeacherAssignment {
+    +string assignmentRole
+}
+class Enrollment {
+    +datetime enrolledAt
+    +string attendanceStatus
+    +markAttendance()
+}
+class CoachingJoinRequest {
+    +int id
+    +datetime requestedAt
+    +string status
+    +bool teacherApproved
+    +bool managementApproved
+    +approveByTeacher()
+    +approveByManagement()
+    +reject()
+}
+class ValidationRecord {
+    +int id
+    +string type
+    +string decision
+    +datetime validatedAt
+    +string notes
+    +validate()
+}
+
+'========================
+' COMUNICAÇÃO / EVENTOS
+'========================
+class Notification {
+    +int id
+    +string title
+    +string message
+    +bool isRead
+    +datetime createdAt
+    +markAsRead()
+}
+class NotificationType {
+    +int id
+    +string typeName
+}
+class SchoolEvent {
+    +int id
+    +string title
+    +string description
+    +datetime startsAt
+    +datetime endsAt
+    +string audienceScope
+    +publish()
+    +cancel()
+}
+class EventParticipation {
+    +int id
+    +datetime registeredAt
+    +string participationStatus
+    +register()
+    +cancelRegistration()
+    +checkIn()
+}
+class LostAndFoundItem {
+    +int id
+    +string title
+    +string description
+    +datetime foundDate
+    +bool claimedStatus
+    +string photoUrl
+    +markClaimed()
+}
+
+'========================
+' FINANÇAS
+'========================
+class FinancialEntry {
+    +int id
+    +Money amount
+    +string entryType
+    +datetime generatedAt
+    +bool exportedToAccounting
+    +generateFromSession()
+    +markExported()
+}
+class FinancialSummary {
+    +int id
+    +DateRange period
+    +datetime generatedAt
+    +Money totalAmount
+    +generate()
+    +exportToAccounting()
+}
+class PaymentMethod {
+    +int id
+    +string methodName
+    +bool isActive
+}
+
+'========================
+' INVENTÁRIO
+'========================
+class InventoryItem {
+    +int id
+    +string itemName
+    +string photoUrl
+    +Money symbolicFee
+    +string description
+    +bool isSchoolOwned
+    +bool rentOnly
+    +publish()
+    +archive()
+    +startRental()
+}
+class ItemCategory {
+    +int id
+    +string categoryName
+    +string description
+    +bool isActive
+}
+class InventoryTransaction {
+    +int id
+    +DateRange period
+    +bool isCompleted
+    +bool conditionChecked
+    +bool returnVerified
+    +startRental()
+    +completeRental()
+}
+
+'========================
+' MARKETPLACE
+'========================
+class MarketplaceItem {
+    +int id
+    +string title
+    +string description
+    +Money price
+    +string status
+    +string condition
+    +string transactionMode
+    +publish()
+    +reserve()
+    +close()
+}
+class MarketplaceTransaction {
+    +int id
+    +datetime transactionDate
+    +Money finalAmount
+    +bool isCompleted
+    +complete()
+}
+
+'========================
+' RELAÇÕES (inalteradas)
+'========================
+User "1" o-- "0..*" Role : has roles
+User "1" *-- "0..*" UserProfile : owns profiles
+UserProfile <|-- StudentProfile
+UserProfile <|-- TeacherProfile
+UserProfile <|-- ManagementProfile
+
+TeacherProfile "1" *-- "0..*" AvailabilitySlot : defines
+TeacherProfile "1" *-- "0..*" TeacherAbsence : registers
+
+User "1" --> "0..*" Notification : receives
+Notification "0..*" --> "1" NotificationType : categorized by
+User "1" --> "0..*" SchoolEvent : creates
+
+Studio "0..*" -- "0..*" Modality : supports
+Studio "0..*" -- "0..*" SessionFormat : supports
+Studio "1" <-- "0..*" CoachingSession : hosts
+Modality "1" <-- "0..*" CoachingSession : modality
+SessionFormat "1" <-- "0..*" CoachingSession : session format
+User "1" --> "0..*" CoachingSession : requested by
+
+CoachingSession "1" *-- "1..*" SessionTeacherAssignment : teacher assignments
+TeacherProfile "1" <-- "0..*" SessionTeacherAssignment : teacher
+CoachingSession "1" *-- "0..*" Enrollment : enrollments
+StudentProfile "1" <-- "0..*" Enrollment : participant
+
+CoachingSession "1" *-- "0..*" ValidationRecord : validation trail
+User "1" <-- "0..*" ValidationRecord : performed by
+CoachingSession "1" --> "0..*" Notification : triggers
+
+CoachingSession "1" *-- "0..*" CoachingJoinRequest : join requests
+User "1" <-- "0..*" CoachingJoinRequest : requested by
+StudentProfile "1" <-- "0..*" CoachingJoinRequest : requested for
+CoachingJoinRequest "1" --> "0..1" Enrollment : creates on approval
+
+CoachingSession "1" <-- "0..*" FinancialEntry : generated from
+FinancialSummary "1" o-- "0..*" FinancialEntry : aggregates
+ManagementProfile "1" --> "0..*" FinancialSummary : generated by
+ManagementProfile "0..1" <-- "0..*" FinancialEntry : exported by
+
+User "1" --> "0..*" InventoryItem : owns
+ItemCategory "1" <-- "0..*" InventoryItem : categorized as
+InventoryItem "1" *-- "0..*" InventoryTransaction : rental history
+User "1" <-- "0..*" InventoryTransaction : rented by
+PaymentMethod "1" <-- "0..*" InventoryTransaction : paid with
+
+User "1" --> "0..*" MarketplaceItem : sells
+MarketplaceItem "1" *-- "0..*" MarketplaceTransaction : transaction history
+User "1" <-- "0..*" MarketplaceTransaction : bought by
+PaymentMethod "1" <-- "0..*" MarketplaceTransaction : paid with
+
+AcademicYear "1" *-- "1..*" SchoolScheduleEntry : contains
+ManagementProfile "1" --> "0..*" SchoolScheduleEntry : managed by
+Studio "1" <-- "0..*" SchoolScheduleEntry : allocated studio
+Modality "0..1" <-- "0..*" SchoolScheduleEntry : planned modality
+
+ManagementProfile "1" --> "0..*" LostAndFoundItem : registered by
+SchoolEvent "1" *-- "0..*" EventParticipation : participations
+User "1" <-- "0..*" EventParticipation : participant
+SchoolEvent "1" --> "0..*" Notification : may trigger
+
+TeacherAbsence "1" --> "1" DateRange : period
+FinancialSummary "1" --> "1" DateRange : period
+InventoryTransaction "1" --> "1" DateRange : period
+
+FinancialEntry "1" --> "1" Money : amount
+FinancialSummary "1" --> "1" Money : total
+InventoryItem "1" --> "1" Money : symbolic fee
+MarketplaceItem "1" --> "1" Money : price
+MarketplaceTransaction "1" --> "1" Money : final amount
+
+AvailabilitySlot "1" --> "1" TimeSlot : slot
+
+@enduml
