@@ -190,7 +190,7 @@ sequenceDiagram
             Platform->>Notification: Notify Student – session membership confirmed
             Notification-->>Student: You have been added to the session
         else Management rejects
-            Management->>Platform: rejectRequest(reason)
+            Management->>Platform: rejectRequest()
             Platform->>CoachingJoinRequest: reject()
             Platform->>Notification: Notify Student – request rejected
             Notification-->>Student: Join request was rejected
