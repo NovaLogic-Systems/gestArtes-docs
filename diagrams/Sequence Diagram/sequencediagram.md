@@ -3,24 +3,26 @@
 ```mermaid
 sequenceDiagram
     actor User
-    participant Platform
-    participant AuthService
+    participant Frontend as Platform
+    participant AuthController as src/controllers/auth.controller.js
+    participant SessionService as src/services/session.service.js
 
-    User->>Platform: openLoginPage()
-    activate Platform
-    Platform-->>User: renderLoginForm()
-    User->>Platform: submitCredentials(email, password)
-    Platform->>AuthService: authenticate(email, password)
-    activate AuthService
+    User->>Frontend: openLoginPage()
+    activate Frontend
+    Frontend-->>User: renderLoginForm()
+    User->>Frontend: submitCredentials(email, password)
+    Frontend->>AuthController: POST /auth/login (email, password)
+    activate AuthController
+    AuthController->>SessionService: sessionService.createSession(user)
     alt Valid credentials
-        AuthService-->>Platform: authenticationSuccess(userId, authUid)
-        Platform-->>User: redirectToDashboard()
+        AuthController-->>Frontend: 200 { userId, session }
+        Frontend-->>User: redirectToDashboard()
     else Invalid credentials
-        AuthService-->>Platform: authenticationFailed()
-        Platform-->>User: showLoginError()
+        AuthController-->>Frontend: 401 { error }
+        Frontend-->>User: showLoginError()
     end
-    deactivate AuthService
-    deactivate Platform
+    deactivate AuthController
+    deactivate Frontend
 ```
 
 ---
@@ -29,36 +31,33 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Applicant as Student / Teacher
-    participant Platform
-    participant Studio
-    participant TeacherAvailability
-    participant CoachingSession
+    actor Applicant as Student/Teacher
+    participant Frontend as Platform
+    participant StudioService as src/services/studioOccupancy.service.js
+    participant AvailabilityService as src/services/availability.service.js
+    participant SessionService as src/services/session.service.js
     actor Management
-    participant Notification
+    participant NotificationService as src/services/notification.service.js
 
-    Applicant->>Platform: requestCoachingSession()
-    Platform->>Studio: Check studio availability
-    Studio-->>Platform: Studio available
-    Platform->>TeacherAvailability: isAvailable(startAt, endAt)
-    TeacherAvailability-->>Platform: Teacher available
-    Platform->>CoachingSession: requestApproval()
-    Platform->>Notification: Notify Management – pending approval
-    Notification-->>Management: New booking request
+    Applicant->>Frontend: requestCoachingSession(payload)
+    Frontend->>StudioService: studioService.checkAvailability(studioId, start, end)
+    StudioService-->>Frontend: available
+    Frontend->>AvailabilityService: availabilityService.isTeacherAvailable(teacherId, start, end)
+    AvailabilityService-->>Frontend: available
+    Frontend->>SessionService: sessionService.createRequest(payload)
+    SessionService-->>NotificationService: notifyManagement({ sessionId, details })
+    NotificationService-->>Management: New booking request
     alt Management approves within 48h
-        Management->>Platform: approveByManagement()
-        Platform->>CoachingSession: approve()
-        Platform->>Notification: Notify Applicant – session confirmed
-        Notification-->>Applicant: Booking confirmed
+        Management->>SessionService: sessionService.approve(sessionId)
+        SessionService-->>NotificationService: notifyApplicant(sessionId, confirmed)
+        NotificationService-->>Applicant: Booking confirmed
     else Management rejects
-        Management->>Platform: rejectRequest(reason)
-        Platform->>CoachingSession: reject()
-        Platform->>Notification: Notify Applicant – rejected or alternative slot proposed
-        Notification-->>Applicant: Booking rejected / alternative slot
+        Management->>SessionService: sessionService.reject(sessionId, reason)
+        SessionService-->>NotificationService: notifyApplicant(sessionId, rejected)
+        NotificationService-->>Applicant: Booking rejected / alternative slot
     else 48h deadline expires without action
-        Platform->>CoachingSession: reject()
-        Platform->>Notification: Notify Applicant – booking expired
-        Notification-->>Applicant: Booking cancelled (timeout)
+        SessionService-->>NotificationService: notifyApplicant(sessionId, expired)
+        NotificationService-->>Applicant: Booking cancelled (timeout)
     end
 ```
 
@@ -71,28 +70,28 @@ sequenceDiagram
     actor Teacher
     actor Student as StudentAccount
     actor Management
-    participant Platform
-    participant CoachingSession
-    participant SessionValidation
-    participant FinancialEntry
-    participant Notification
+    participant Frontend as Platform
+    participant SessionService as src/services/session.service.js
+    participant ValidationService as src/services/adminValidation.service.js
+    participant FinanceService as src/services/finance.service.js
+    participant NotificationService as src/services/notification.service.js
 
-    Note over CoachingSession: Status: SCHEDULED
+    Note over SessionService: Status: SCHEDULED
     alt Teacher confirms completion
-        Teacher->>Platform: confirmCompletion()
-        Platform->>SessionValidation: record()
-    else StudentAccount confirms completion
-        Student->>Platform: confirmCompletion()
-        Platform->>SessionValidation: record()
+        Teacher->>Frontend: confirmCompletion(sessionId)
+        Frontend->>SessionService: sessionService.recordCompletionByTeacher(sessionId)
+        SessionService-->>ValidationService: validationService.record(sessionId, byTeacher)
+    else Student confirms completion
+        Student->>Frontend: confirmCompletion(sessionId)
+        Frontend->>SessionService: sessionService.recordCompletionByStudent(sessionId)
+        SessionService-->>ValidationService: validationService.record(sessionId, byStudent)
     end
-    Platform->>CoachingSession: confirmCompletion()
-    Platform->>Notification: Request final validation from Management
-    Notification-->>Management: Session ready for finalisation
-    Management->>Platform: approveByManagement()
-    Platform->>SessionValidation: record()
-    Platform->>CoachingSession: approve()
-    Platform->>FinancialEntry: generateFromSession()
-    Note over FinancialEntry: Accounting table updated automatically
+    Frontend->>NotificationService: notifyManagementSessionReady(sessionId)
+    NotificationService-->>Management: Session ready for finalisation
+    Management->>ValidationService: validationService.finalApprove(sessionId)
+    ValidationService-->>SessionService: sessionService.finalize(sessionId)
+    SessionService-->>FinanceService: financeService.generateFromSession(sessionId)
+    Note over FinanceService: Financial entries created
 ```
 
 ---
