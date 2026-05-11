@@ -1,387 +1,654 @@
-@startuml
-'============================================================
-' CLASS DIAGRAM STRUCTURE DOMAIN
-'============================================================
-skinparam classAttributeIconSize 0
-left to right direction
-'skinparam Shadowing false
-'skinparam linetype ortho
-skinparam roundcorner 8
-skinparam dpi 150
-skinparam ArrowColor #444444
-skinparam ArrowThickness 1
-skinparam RankSep 35
-skinparam NodeSep 30
+@startuml ClassDiagramStructureDomain
+!define ABSTRACT_BG #F0F0F0
+!define TABLE_BG #E1F5FF
+!define ENUM_BG #FFF9C4
+
+skinparam classBackgroundColor #FFFFFF
+skinparam classArrowColor #000000
+skinparam classFontColor #000000
+skinparam classAttributeFontColor #000000
+skinparam classStereotypeFontColor #666666
 
 '========================
-' IDENTIDADE E PERFIS
+' IDENTITY & ACCESS CONTROL
 '========================
-class Role {
-    +int id
-    +string roleName
-    +string description
-}
-class User {
-    +int id
-    +string firstName
-    +string lastName
-    +string email
-    +string phoneNumber
-    +string photoUrl
-    +bool isActive
-    +datetime createdAt
-    +datetime updatedAt
-    +activate()
-    +deactivate()
-    +updateProfile()
-    +receiveNotification()
-}
-class UserProfile <<abstract>> {
-    +datetime createdAt
-    +datetime updatedAt
-    +activateProfile()
-    +deactivateProfile()
-}
-class StudentProfile {
-    +date birthDate
-    +string emergencyContact
-    +bool profileComplete
-    +completeProfile()
-}
-class TeacherProfile {
-    +string shortBio
-    +decimal baseHourlyRate
-    +defineAvailability()
-    +registerAbsence()
-}
-class ManagementProfile {
-    +string department
-    +validateBookingRequest()
-    +approveSessionFinalization()
-    +generateFinancialSummary()
-    +exportAccountingSummary()
-    +manageSchoolSchedule()
+entity User {
+    *UserID : Int
+    --
+    AuthUID : String (PK)
+    FirstName : String
+    LastName : String
+    Email : String (U)
+    PhoneNumber : String
+    Photo : String
+    PasswordHash : String
+    IsActive : Boolean
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+    DeletedAt : DateTime
 }
 
-'========================
-' TEMPO / INTERVALOS
-'========================
-class TimeSlot {
-    +datetime startAt
-    +datetime endAt
-    +bool overlaps(other)
+entity Role {
+    *RoleID : Int
+    --
+    RoleName : String (U)
+    Description : String
 }
-class DateRange {
-    +date startDate
-    +date endDate
-    +bool contains(date)
+
+entity UserRole {
+    *UserID : Int
+    *RoleID : Int
 }
-class AvailabilitySlot {
-    +int dayOfWeek
-    +TimeSlot slot
-    +bool recurring
-    +defineSlot()
+
+entity RefreshToken {
+    *TokenID : Int
+    --
+    UserID : Int (FK)
+    Token : String (U)
+    ExpiresAt : DateTime
+    CreatedAt : DateTime
+    RevokedAt : DateTime
 }
-class TeacherAbsence {
-    +DateRange period
-    +string reason
-    +registerAbsence()
+
+entity StudentAccount {
+    *StudentAccountID : Int
+    --
+    UserID : Int (FK, U)
+    BirthDate : Date
+    GuardianName : String
+    GuardianPhone : String
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
 }
 
 '========================
-' CALENDÁRIO ESCOLAR
+' STUDIOS & MODALITIES
 '========================
-class AcademicYear {
-    +int id
-    +string label
-    +date startsOn
-    +date endsOn
-    +bool isActive
+entity Studio {
+    *StudioID : Int
+    --
+    StudioName : String (U)
+    Capacity : Int
+    IsActive : Boolean
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
 }
-class SchoolScheduleEntry {
-    +int id
-    +datetime startsAt
-    +datetime endsAt
-    +string notes
-    +publish()
-    +archive()
+
+entity Modality {
+    *ModalityID : Int
+    --
+    ModalityName : String (U)
+    Description : String
+    IsActive : Boolean
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+}
+
+entity StudioModality {
+    *StudioID : Int
+    *ModalityID : Int
+}
+
+entity StudioBlock {
+    *StudioBlockID : Int
+    --
+    StudioID : Int (FK)
+    StartsAt : DateTime
+    EndsAt : DateTime
+    Reason : String
+    BlockType : String
+    CreatedByUserID : Int (FK)
+    CreatedAt : DateTime
+    IsActive : Boolean
+}
+
+entity StudioStatusOverride {
+    *StudioStatusOverrideID : Int
+    --
+    StudioID : Int (FK)
+    Status : String
+    Reason : String
+    StartsAt : DateTime
+    EndsAt : DateTime
+    SetByUserID : Int (FK)
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+    IsActive : Boolean
+}
+
+entity TeacherModality {
+    *TeacherID : Int
+    *ModalityID : Int
 }
 
 '========================
-' ESPAÇOS E ESTILOS
+' COACHING SESSIONS
 '========================
-class Studio {
-    +int id
-    +string studioName
-    +int capacity
-    +string floorType
-    +string materials
-    +bool isAvailable(startAt, endAt)
-    +bool isCompatibleWith(modality, danceStyle)
+entity SessionStatus {
+    *StatusID : Int
+    --
+    StatusName : String (U)
 }
-class Modality {
-    +int id
-    +string modalityName
+
+entity SessionPricingRate {
+    *PricingRateID : Int
+    --
+    RateName : String (U)
+    HourlyRate : Decimal
+    Description : String
+    IsActive : Boolean
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
 }
-class DanceStyle {
-    +int id
-    +string styleName
+
+entity CoachingSession {
+    *SessionID : Int
+    --
+    StudioID : Int (FK)
+    ModalityID : Int (FK)
+    StartTime : DateTime
+    EndTime : DateTime
+    StatusID : Int (FK)
+    FinalPrice : Decimal
+    RequestedByUserID : Int (FK)
+    PricingRateID : Int (FK)
+    MaxParticipants : Int
+    IsExternal : Boolean
+    IsOutsideStdHours : Boolean
+    CreatedAt : DateTime
+    ReviewedByUserID : Int (FK)
+    ReviewedAt : DateTime
+    ReviewNotes : String
+    CancellationReason : String
+}
+
+entity AttendanceStatus {
+    *AttendanceStatusID : Int
+    --
+    StatusName : String (U)
+}
+
+entity SessionStudent {
+    *SessionID : Int
+    *StudentAccountID : Int
+    --
+    EnrolledAt : DateTime
+    AttendanceStatusID : Int (FK)
+}
+
+entity TeacherAssignmentRole {
+    *AssignmentRoleID : Int
+    --
+    RoleName : String (U)
+}
+
+entity SessionTeacher {
+    *SessionID : Int
+    *TeacherID : Int
+    --
+    AssignmentRoleID : Int (FK)
 }
 
 '========================
-' COACHING
+' COACHING JOIN REQUESTS
 '========================
-class Money {
-    +decimal amount
-    +string currency
-    +add(value)
-    +subtract(value)
+entity CoachingJoinRequestStatus {
+    *StatusID : Int
+    --
+    StatusName : String (U)
 }
-class CoachingSession {
-    +int id
-    +datetime startTime
-    +datetime endTime
-    +Money finalPrice
-    +datetime validationRequestedAt
-    +datetime validationDeadline
-    +string cancellationReason
-    +int maxParticipants
-    +bool isExternal
-    +bool isOutsideStandardHours
-    +string status
-    +string format
-    +requestApproval()
-    +approve()
-    +reject()
-    +confirmCompletion()
-    +cancelWithReason()
-    +recordNoShow()
-    +calculateFinalPrice()
-    +addParticipant(student)
-}
-class SessionTeacherAssignment {
-    +string assignmentRole
-}
-class Enrollment {
-    +datetime enrolledAt
-    +string attendanceStatus
-    +markAttendance()
-}
-class CoachingJoinRequest {
-    +int id
-    +datetime requestedAt
-    +string status
-    +bool teacherApproved
-    +bool managementApproved
-    +approveByTeacher()
-    +approveByManagement()
-    +reject()
-}
-class ValidationRecord {
-    +int id
-    +string type
-    +string decision
-    +datetime validatedAt
-    +string notes
-    +validate()
+
+entity CoachingJoinRequest {
+    *JoinRequestID : Int
+    --
+    SessionID : Int (FK)
+    StudentAccountID : Int (FK)
+    RequestedAt : DateTime
+    StatusID : Int (FK)
+    ReviewedByUserID : Int (FK)
+    ReviewedAt : DateTime
 }
 
 '========================
-' COMUNICAÇÃO / EVENTOS
+' SESSION VALIDATION
 '========================
-class Notification {
-    +int id
-    +string title
-    +string message
-    +bool isRead
-    +datetime createdAt
-    +markAsRead()
+entity ValidationStep {
+    *StepID : Int
+    --
+    StepName : String (U)
 }
-class NotificationType {
-    +int id
-    +string typeName
-}
-class SchoolEvent {
-    +int id
-    +string title
-    +string description
-    +datetime startsAt
-    +datetime endsAt
-    +string audienceScope
-    +publish()
-    +cancel()
-}
-class EventParticipation {
-    +int id
-    +datetime registeredAt
-    +string participationStatus
-    +register()
-    +cancelRegistration()
-    +checkIn()
-}
-class LostAndFoundItem {
-    +int id
-    +string title
-    +string description
-    +datetime foundDate
-    +bool claimedStatus
-    +string photoUrl
-    +markClaimed()
+
+entity SessionValidation {
+    *ValidationID : Int
+    --
+    SessionID : Int (FK)
+    ValidatedByUserID : Int (FK)
+    ValidatedAt : DateTime
+    ValidationStepID : Int (FK)
 }
 
 '========================
-' FINANÇAS
+' TEACHER AVAILABILITY
 '========================
-class FinancialEntry {
-    +int id
-    +Money amount
-    +string entryType
-    +datetime generatedAt
-    +bool exportedToAccounting
-    +generateFromSession()
-    +markExported()
+entity TeacherAvailabilityStatus {
+    *StatusID : Int
+    --
+    StatusName : String (U)
 }
-class FinancialSummary {
-    +int id
-    +DateRange period
-    +datetime generatedAt
-    +Money totalAmount
-    +generate()
-    +exportToAccounting()
+
+entity TeacherAvailability {
+    *AvailabilityID : Int
+    --
+    TeacherID : Int (FK)
+    RequestedAt : DateTime
+    StatusID : Int (FK)
+    Notes : String
+    ReviewedByUserID : Int (FK)
+    ReviewedAt : DateTime
+    ReviewNotes : String
 }
-class PaymentMethod {
-    +int id
-    +string methodName
-    +bool isActive
+
+entity TeacherAvailabilityRecurring {
+    *AvailabilityID : Int (FK, PK)
+    --
+    DayOfWeek : Int
+    StartTime : Time
+    EndTime : Time
+    AcademicYearID : Int (FK)
+    IsActive : Boolean
+}
+
+entity TeacherAvailabilityPunctual {
+    *AvailabilityID : Int (FK, PK)
+    --
+    StartDateTime : DateTime
+    EndDateTime : DateTime
 }
 
 '========================
-' INVENTÁRIO
+' TEACHER ABSENCE
 '========================
-class InventoryItem {
-    +int id
-    +string itemName
-    +string photoUrl
-    +Money symbolicFee
-    +string description
-    +bool isSchoolOwned
-    +bool rentOnly
-    +publish()
-    +archive()
-    +startRental()
+entity TeacherAbsenceStatus {
+    *StatusID : Int
+    --
+    StatusName : String (U)
 }
-class ItemCategory {
-    +int id
-    +string categoryName
-    +string description
-    +bool isActive
+
+entity TeacherAbsence {
+    *AbsenceID : Int
+    --
+    TeacherID : Int (FK)
+    StartDate : DateTime
+    EndDate : DateTime
+    Reason : String
+    StatusID : Int (FK)
+    RequestedAt : DateTime
+    ReviewedByUserID : Int (FK)
+    ReviewedAt : DateTime
+    ReviewNotes : String
 }
-class InventoryTransaction {
-    +int id
-    +DateRange period
-    +bool isCompleted
-    +bool conditionChecked
-    +bool returnVerified
-    +startRental()
-    +completeRental()
+
+'========================
+' NOTIFICATIONS
+'========================
+entity NotificationType {
+    *TypeID : Int
+    --
+    TypeName : String (U)
+}
+
+entity Notification {
+    *NotificationID : Int
+    --
+    UserID : Int (FK)
+    Title : String
+    Message : String
+    TypeID : Int (FK)
+    SessionID : Int (FK)
+    IsRead : Boolean
+    CreatedAt : DateTime
+}
+
+'========================
+' INVENTORY
+'========================
+entity ItemCategory {
+    *CategoryID : Int
+    --
+    CategoryName : String (U)
+    Description : String
+    IsActive : Boolean
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+}
+
+entity InventoryItem {
+    *InventoryItemID : Int
+    --
+    ItemName : String
+    CategoryID : Int (FK)
+    SymbolicFee : Decimal
+    Description : String
+    PhotoURL : String
+    TotalQuantity : Int
+    IsSchoolOwned : Boolean
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+    ArchivedAt : DateTime
+}
+
+entity PaymentMethod {
+    *PaymentMethodID : Int
+    --
+    MethodName : String (U)
+    IsActive : Boolean
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+}
+
+entity InventoryTransaction {
+    *TransactionID : Int
+    --
+    InventoryItemID : Int (FK)
+    RenterID : Int (FK)
+    StartDate : DateTime
+    EndDate : DateTime
+    PaymentMethodID : Int (FK)
+    IsCompleted : Boolean
+    ConditionChecked : Boolean
+    ReturnVerified : Boolean
+    ReturnConditionStatus : String
+    ReturnConditionNotes : String
+    ReturnVerifiedAt : DateTime
+    ApprovalStatus : String
+    ApprovedAt : DateTime
+    ApprovalNotes : String
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
 }
 
 '========================
 ' MARKETPLACE
 '========================
-class MarketplaceItem {
-    +int id
-    +string title
-    +string description
-    +Money price
-    +string status
-    +string condition
-    +string transactionMode
-    +publish()
-    +reserve()
-    +close()
+entity MarketplaceItemStatus {
+    *StatusID : Int
+    --
+    StatusName : String (U)
 }
-class MarketplaceTransaction {
-    +int id
-    +datetime transactionDate
-    +Money finalAmount
-    +bool isCompleted
-    +complete()
+
+entity MarketplaceItemCondition {
+    *ConditionID : Int
+    --
+    ConditionName : String (U)
+}
+
+entity MarketplaceItem {
+    *MarketplaceItemID : Int
+    --
+    SellerID : Int (FK)
+    CategoryID : Int (FK)
+    Title : String
+    Description : String
+    Price : Decimal
+    ConditionID : Int (FK)
+    StatusID : Int (FK)
+    PhotoURL : String
+    Location : String
+    RejectionReason : String
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+    IsActive : Boolean
+}
+
+entity MarketplaceTransaction {
+    *TransactionID : Int
+    --
+    MarketplaceItemID : Int (FK)
+    BuyerID : Int (FK)
+    TransactionDate : DateTime
+    PaymentMethodID : Int (FK)
+    CreatedAt : DateTime
 }
 
 '========================
-' RELAÇÕES (inalteradas)
+' FINANCES
 '========================
-User "1" o-- "0..*" Role : has roles
-User "1" *-- "0..*" UserProfile : owns profiles
-UserProfile <|-- StudentProfile
-UserProfile <|-- TeacherProfile
-UserProfile <|-- ManagementProfile
+entity FinancialEntryType {
+    *EntryTypeID : Int
+    --
+    TypeName : String (U)
+}
 
-TeacherProfile "1" *-- "0..*" AvailabilitySlot : defines
-TeacherProfile "1" *-- "0..*" TeacherAbsence : registers
+entity FinancialEntry {
+    *EntryID : Int
+    --
+    SessionID : Int (FK)
+    Amount : Decimal
+    EntryTypeID : Int (FK)
+    FinancialSummaryID : Int (FK)
+    CreatedAt : DateTime
+    IsExported : Boolean
+    ExportedByUserID : Int (FK)
+}
 
-User "1" --> "0..*" Notification : receives
-Notification "0..*" --> "1" NotificationType : categorized by
-User "1" --> "0..*" SchoolEvent : creates
+entity FinancialSummary {
+    *FinancialSummaryID : Int
+    --
+    AcademicYearID : Int (FK)
+    PeriodStart : Date
+    PeriodEnd : Date
+    GeneratedAt : DateTime
+    GeneratedByUserID : Int (FK)
+    TotalAmount : Decimal
+    IsExported : Boolean
+}
 
-Studio "0..*" -- "0..*" Modality : supports
-Studio "0..*" -- "0..*" DanceStyle : supports
-Studio "1" <-- "0..*" CoachingSession : hosts
-Modality "1" <-- "0..*" CoachingSession : modality
-DanceStyle "1" <-- "0..*" CoachingSession : dance style
-User "1" --> "0..*" CoachingSession : requested by
+'========================
+' ACADEMIC CALENDAR
+'========================
+entity AcademicYear {
+    *AcademicYearID : Int
+    --
+    Label : String (U)
+    StartsOn : Date
+    EndsOn : Date
+    IsActive : Boolean
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+}
 
-CoachingSession "1" *-- "1..*" SessionTeacherAssignment : teacher assignments
-TeacherProfile "1" <-- "0..*" SessionTeacherAssignment : teacher
-CoachingSession "1" *-- "0..*" Enrollment : enrollments
-StudentProfile "1" <-- "0..*" Enrollment : participant
+entity SchoolEventStatus {
+    *StatusID : Int
+    --
+    StatusName : String (U)
+}
 
-CoachingSession "1" *-- "0..*" ValidationRecord : validation trail
-User "1" <-- "0..*" ValidationRecord : performed by
-CoachingSession "1" --> "0..*" Notification : triggers
+entity AudienceScope {
+    *AudienceScopeID : Int
+    --
+    ScopeName : String (U)
+}
 
-CoachingSession "1" *-- "0..*" CoachingJoinRequest : join requests
-User "1" <-- "0..*" CoachingJoinRequest : requested by
-StudentProfile "1" <-- "0..*" CoachingJoinRequest : requested for
-CoachingJoinRequest "1" --> "0..1" Enrollment : creates on approval
+entity SchoolEvent {
+    *EventID : Int
+    --
+    AcademicYearID : Int (FK)
+    Title : String
+    Description : String
+    StartsAt : DateTime
+    EndsAt : DateTime
+    AudienceScopeID : Int (FK)
+    StatusID : Int (FK)
+    CreatedByUserID : Int (FK)
+    IsActive : Boolean
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+}
 
-CoachingSession "1" <-- "0..*" FinancialEntry : generated from
-FinancialSummary "1" o-- "0..*" FinancialEntry : aggregates
-ManagementProfile "1" --> "0..*" FinancialSummary : generated by
-ManagementProfile "0..1" <-- "0..*" FinancialEntry : exported by
+entity SchoolScheduleStatus {
+    *StatusID : Int
+    --
+    StatusName : String (U)
+}
 
-User "1" --> "0..*" InventoryItem : owns
-ItemCategory "1" <-- "0..*" InventoryItem : categorized as
-InventoryItem "1" *-- "0..*" InventoryTransaction : rental history
-User "1" <-- "0..*" InventoryTransaction : rented by
-PaymentMethod "1" <-- "0..*" InventoryTransaction : paid with
+entity SchoolSchedule {
+    *ScheduleEntryID : Int
+    --
+    AcademicYearID : Int (FK)
+    StartsAt : DateTime
+    EndsAt : DateTime
+    Notes : String
+    StudioID : Int (FK)
+    StatusID : Int (FK)
+    IsActive : Boolean
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+}
 
-User "1" --> "0..*" MarketplaceItem : sells
-MarketplaceItem "1" *-- "0..*" MarketplaceTransaction : transaction history
-User "1" <-- "0..*" MarketplaceTransaction : bought by
-PaymentMethod "1" <-- "0..*" MarketplaceTransaction : paid with
+'========================
+' LOST & FOUND
+'========================
+entity LostAndFoundItem {
+    *LostItemID : Int
+    --
+    RegisteredByUserID : Int (FK)
+    Title : String
+    Description : String
+    Location : String
+    FoundDate : DateTime
+    ClaimedStatus : Boolean
+    PhotoURL : String
+    AdminNotes : String
+    IsArchived : Boolean
+    ArchivedAt : DateTime
+    CreatedAt : DateTime
+    UpdatedAt : DateTime
+}
 
-AcademicYear "1" *-- "1..*" SchoolScheduleEntry : contains
-ManagementProfile "1" --> "0..*" SchoolScheduleEntry : managed by
-Studio "1" <-- "0..*" SchoolScheduleEntry : allocated studio
-Modality "0..1" <-- "0..*" SchoolScheduleEntry : planned modality
+'========================
+' AUDIT LOG
+'========================
+entity AuditLog {
+    *AuditLogID : Int
+    --
+    AuditTimestamp : DateTime
+    UserID : Int (FK)
+    UserName : String
+    UserRole : String
+    Action : String
+    Module : String
+    TargetType : String
+    TargetID : String
+    Result : String
+    Detail : String
+}
 
-ManagementProfile "1" --> "0..*" LostAndFoundItem : registered by
-SchoolEvent "1" *-- "0..*" EventParticipation : participations
-User "1" <-- "0..*" EventParticipation : participant
-SchoolEvent "1" --> "0..*" Notification : may trigger
+'========================
+' RELATIONSHIPS
+'========================
 
-TeacherAbsence "1" --> "1" DateRange : period
-FinancialSummary "1" --> "1" DateRange : period
-InventoryTransaction "1" --> "1" DateRange : period
+' Identity & Access
+User "1" |o--o{ "0..*" Role : has
+User "1" *--o "0..1" StudentAccount : student_account
+User "1" o--{ "0..*" RefreshToken : refresh_tokens
 
-FinancialEntry "1" --> "1" Money : amount
-FinancialSummary "1" --> "1" Money : total
-InventoryItem "1" --> "1" Money : symbolic fee
-MarketplaceItem "1" --> "1" Money : price
-MarketplaceTransaction "1" --> "1" Money : final amount
+' Studio Management
+Studio "0..*" o--o{ "0..*" Modality : supports_via
+StudioModality }o--|| Studio : ""
+StudioModality }o--|| Modality : ""
+Studio "1" o--{ "0..*" StudioBlock : blocks
+Studio "1" o--{ "0..*" StudioStatusOverride : overrides
+User }o--|| StudioBlock : created_by
+User }o--|| StudioStatusOverride : set_by
 
-AvailabilitySlot "1" --> "1" TimeSlot : slot
+' Teacher Qualifications
+User }o--|| TeacherModality : ""
+Modality ||--o{ TeacherModality : ""
+
+' Coaching Sessions - General
+Studio ||--o{ CoachingSession : hosted_in
+Modality ||--o{ CoachingSession : modality
+SessionStatus ||--o{ CoachingSession : status
+SessionPricingRate ||--o{ CoachingSession : pricing_rate
+User ||--o{ CoachingSession : requested_by
+User ||--o{ CoachingSession : reviewed_by
+
+' Coaching Sessions - Teachers
+CoachingSession "1" o--{ "1..*" SessionTeacher : teachers
+User ||--o{ SessionTeacher : teacher
+TeacherAssignmentRole ||--o{ SessionTeacher : assignment_role
+
+' Coaching Sessions - Students
+CoachingSession "1" o--{ "0..*" SessionStudent : students
+StudentAccount ||--o{ SessionStudent : student
+AttendanceStatus ||--o{ SessionStudent : attendance
+
+' Coaching Join Requests
+CoachingSession "1" o--{ "0..*" CoachingJoinRequest : join_requests
+StudentAccount ||--o{ CoachingJoinRequest : student
+CoachingJoinRequestStatus ||--o{ CoachingJoinRequest : status
+User ||--o{ CoachingJoinRequest : reviewed_by
+
+' Session Validation
+CoachingSession "1" o--{ "0..*" SessionValidation : validations
+ValidationStep ||--o{ SessionValidation : step
+User ||--o{ SessionValidation : validated_by
+
+' Teacher Availability
+User ||--o{ TeacherAvailability : teacher
+TeacherAvailabilityStatus ||--o{ TeacherAvailability : status
+User ||--o{ TeacherAvailability : reviewed_by
+TeacherAvailability <|--o{ TeacherAvailabilityRecurring : ""
+TeacherAvailability <|--o{ TeacherAvailabilityPunctual : ""
+AcademicYear ||--o{ TeacherAvailabilityRecurring : academic_year
+
+' Teacher Absence
+User ||--o{ TeacherAbsence : teacher
+TeacherAbsenceStatus ||--o{ TeacherAbsence : status
+User ||--o{ TeacherAbsence : reviewed_by
+
+' Notifications
+User ||--o{ Notification : receives
+NotificationType ||--o{ Notification : type
+CoachingSession ||--o{ Notification : related_to
+
+' Inventory
+ItemCategory ||--o{ InventoryItem : category
+InventoryItem "1" o--{ "0..*" InventoryTransaction : transactions
+User ||--o{ InventoryTransaction : renter
+PaymentMethod ||--o{ InventoryTransaction : payment
+
+' Marketplace
+ItemCategory ||--o{ MarketplaceItem : category
+MarketplaceItemCondition ||--o{ MarketplaceItem : condition
+MarketplaceItemStatus ||--o{ MarketplaceItem : status
+User ||--o{ MarketplaceItem : seller
+MarketplaceItem "1" o--{ "0..*" MarketplaceTransaction : transactions
+User ||--o{ MarketplaceTransaction : buyer
+PaymentMethod ||--o{ MarketplaceTransaction : payment
+
+' Finances
+CoachingSession ||--o{ FinancialEntry : generated_from
+FinancialEntryType ||--o{ FinancialEntry : type
+FinancialSummary "1" o--{ "0..*" FinancialEntry : aggregates
+User ||--o{ FinancialEntry : exported_by
+User ||--o{ FinancialSummary : generated_by
+AcademicYear ||--o{ FinancialSummary : academic_year
+
+' Academic Calendar
+AcademicYear "1" o--{ "0..*" SchoolEvent : events
+AcademicYear "1" o--{ "0..*" SchoolSchedule : schedules
+AcademicYear "1" o--{ "0..*" TeacherAvailabilityRecurring : availabilities
+SchoolEvent }o--|| SchoolEventStatus : status
+SchoolEvent }o--|| AudienceScope : audience
+User ||--o{ SchoolEvent : created_by
+SchoolSchedule }o--|| SchoolScheduleStatus : status
+Studio ||--o{ SchoolSchedule : studio
+
+' Lost & Found
+User ||--o{ LostAndFoundItem : registered_by
+
+' Audit
+User ||--o{ AuditLog : performed_by
 
 @enduml
