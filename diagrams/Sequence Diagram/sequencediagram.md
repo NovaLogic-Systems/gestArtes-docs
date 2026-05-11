@@ -3,26 +3,24 @@
 ```mermaid
 sequenceDiagram
     actor User
-    participant Frontend as Platform
-    participant AuthController as src/controllers/auth.controller.js
-    participant SessionService as src/services/session.service.js
+    participant Platform as Platform
+    participant AuthController as AuthController
+    participant JwtService as JwtService
 
-    User->>Frontend: openLoginPage()
-    activate Frontend
-    Frontend-->>User: renderLoginForm()
-    User->>Frontend: submitCredentials(email, password)
-    Frontend->>AuthController: POST /auth/login (email, password)
+    User->>Platform: openLoginPage()
+    activate Platform
+    Platform-->>User: renderLoginForm()
+    User->>Platform: submitCredentials(email, password)
+    Platform->>AuthController: login(email, password)
     activate AuthController
-    AuthController->>SessionService: sessionService.createSession(user)
-    alt Valid credentials
-        AuthController-->>Frontend: 200 { userId, session }
-        Frontend-->>User: redirectToDashboard()
-    else Invalid credentials
-        AuthController-->>Frontend: 401 { error }
-        Frontend-->>User: showLoginError()
-    end
+    AuthController->>AuthController: findUserByEmail(email)
+    AuthController->>AuthController: bcrypt.compare(password, PasswordHash)
+    AuthController->>JwtService: issueAuthTokens(user)
+    JwtService-->>AuthController: { accessToken, refreshToken }
+    AuthController-->>Platform: { user, accessToken }
+    Platform-->>User: redirectToDashboard()
     deactivate AuthController
-    deactivate Frontend
+    deactivate Platform
 ```
 
 ---
@@ -31,34 +29,32 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Applicant as Student/Teacher
-    participant Frontend as Platform
-    participant StudioService as src/services/studioOccupancy.service.js
-    participant AvailabilityService as src/services/availability.service.js
-    participant SessionService as src/services/session.service.js
-    actor Management
-    participant NotificationService as src/services/notification.service.js
+    actor Student
+    participant Platform as Platform
+    participant CoachingController as CoachingController
+    participant CoachingService as CoachingService
+    participant CoachingUseCases as CoachingUseCases
+    participant NotificationController as NotificationController
 
-    Applicant->>Frontend: requestCoachingSession(payload)
-    Frontend->>StudioService: studioService.checkAvailability(studioId, start, end)
-    StudioService-->>Frontend: available
-    Frontend->>AvailabilityService: availabilityService.isTeacherAvailable(teacherId, start, end)
-    AvailabilityService-->>Frontend: available
-    Frontend->>SessionService: sessionService.createRequest(payload)
-    SessionService-->>NotificationService: notifyManagement({ sessionId, details })
-    NotificationService-->>Management: New booking request
-    alt Management approves within 48h
-        Management->>SessionService: sessionService.approve(sessionId)
-        SessionService-->>NotificationService: notifyApplicant(sessionId, confirmed)
-        NotificationService-->>Applicant: Booking confirmed
-    else Management rejects
-        Management->>SessionService: sessionService.reject(sessionId, reason)
-        SessionService-->>NotificationService: notifyApplicant(sessionId, rejected)
-        NotificationService-->>Applicant: Booking rejected / alternative slot
-    else 48h deadline expires without action
-        SessionService-->>NotificationService: notifyApplicant(sessionId, expired)
-        NotificationService-->>Applicant: Booking cancelled (timeout)
-    end
+    Student->>Platform: selectModalityAndSchedule(modalityId, startTime, endTime, studioId)
+    Platform->>CoachingController: getAvailableSlots(weekStart, modalityId)
+    CoachingController->>CoachingService: getAvailableSlots(weekStart, modalityId)
+    CoachingService-->>CoachingController: { slots }
+    CoachingController-->>Platform: { slots }
+    Platform-->>Student: displayAvailableSlots()
+
+    Student->>Platform: createSession(payload)
+    Platform->>CoachingController: createSession(payload)
+    activate CoachingController
+    CoachingController->>CoachingUseCases: execute(payload)
+    CoachingUseCases-->>CoachingController: { session }
+    CoachingController-->>Platform: { session }
+    deactivate CoachingController
+    Platform-->>Student: Session created (Pending Approval)
+
+    Student->>Platform: requestApproval()
+    Platform->>NotificationController: broadcastNotification()
+    NotificationController-->>Student: Notification sent to Management
 ```
 
 ---
@@ -68,30 +64,39 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor Teacher
-    actor Student as StudentAccount
-    actor Management
-    participant Frontend as Platform
-    participant SessionService as src/services/session.service.js
-    participant ValidationService as src/services/adminValidation.service.js
-    participant FinanceService as src/services/finance.service.js
-    participant NotificationService as src/services/notification.service.js
+    actor Student
+    actor Admin
+    participant Platform as Platform
+    participant CoachingController as CoachingController
+    participant TeacherController as TeacherController
+    participant AdminController as AdminController
+    participant SessionService as SessionService
+    participant FinanceService as FinanceService
 
-    Note over SessionService: Status: SCHEDULED
+    Note over CoachingController: Session Status: SCHEDULED
+
     alt Teacher confirms completion
-        Teacher->>Frontend: confirmCompletion(sessionId)
-        Frontend->>SessionService: sessionService.recordCompletionByTeacher(sessionId)
-        SessionService-->>ValidationService: validationService.record(sessionId, byTeacher)
+        Teacher->>Platform: confirmCompletion(sessionId)
+        Platform->>TeacherController: confirmCompletion(sessionId)
+        TeacherController->>TeacherController: confirmCompletion(sessionId)
+        TeacherController-->>Platform: { session }
+        Platform-->>Teacher: Completion confirmed
     else Student confirms completion
-        Student->>Frontend: confirmCompletion(sessionId)
-        Frontend->>SessionService: sessionService.recordCompletionByStudent(sessionId)
-        SessionService-->>ValidationService: validationService.record(sessionId, byStudent)
+        Student->>Platform: confirmCompletion(sessionId)
+        Platform->>CoachingController: confirmCompletion(sessionId, studentUserId)
+        CoachingController->>CoachingController: confirmCompletion(sessionId, studentUserId)
+        CoachingController-->>Platform: { session }
+        Platform-->>Student: Completion confirmed
     end
-    Frontend->>NotificationService: notifyManagementSessionReady(sessionId)
-    NotificationService-->>Management: Session ready for finalisation
-    Management->>ValidationService: validationService.finalApprove(sessionId)
-    ValidationService-->>SessionService: sessionService.finalize(sessionId)
-    SessionService-->>FinanceService: financeService.generateFromSession(sessionId)
-    Note over FinanceService: Financial entries created
+
+    Admin->>Platform: finalizeValidation(sessionId)
+    Platform->>AdminController: finalizeValidation(sessionId)
+    AdminController->>SessionService: finalizeSessionValidation(sessionId)
+    SessionService-->>AdminController: { finalized: true }
+    AdminController->>FinanceService: generateFromSession(sessionId)
+    FinanceService-->>AdminController: { entries }
+    AdminController-->>Platform: { session }
+    Platform-->>Admin: Validation finalized
 ```
 
 ---
@@ -100,31 +105,24 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Student as StudentAccount
-    actor Management
-    participant Platform
-    participant CoachingSession
-    participant SessionStudent
-    participant FinancialEntry
-    participant Notification
+    actor Student
+    participant Platform as Platform
+    participant CoachingController as CoachingController
+    participant CoachingService as CoachingService
+    participant NotificationController as NotificationController
 
-    Note over CoachingSession: Status: SCHEDULED
-    Student->>Platform: cancelWithJustification(reason)
-    Platform->>CoachingSession: cancelWithReason(reason)
-    Platform->>SessionStudent: markAttendance(CANCELLED_WITH_REASON)
-    Platform->>Notification: Notify Management – cancellation with reason
-    Notification-->>Management: Session cancelled with justification
-    Management->>Platform: Evaluate justification
-    alt Exemption granted
-        Platform->>FinancialEntry: Create entry (type: JUSTIFIED_CANCELLATION_REVIEW, amount: 0)
-        Platform->>Notification: Notify Student – no charge applied
-        Notification-->>Student: Cancellation accepted, no charge
-    else No exemption – charge applies
-        Platform->>FinancialEntry: Create entry (type: COACHING_CHARGE, full price)
-        Platform->>Notification: Notify Student – charge applied
-        Notification-->>Student: Cancellation fee charged
-    end
-    Note over FinancialEntry: Accounting table updated
+    Note over CoachingController: Session Status: SCHEDULED
+    Student->>Platform: cancelBooking(sessionId, justification)
+    Platform->>CoachingController: cancelBooking(sessionId, justification)
+    activate CoachingController
+    CoachingController->>CoachingService: cancelBooking(sessionId, studentUserId, justification)
+    CoachingService-->>CoachingController: { session }
+    CoachingController-->>Platform: { session }
+    deactivate CoachingController
+    Platform-->>Student: Booking cancelled
+
+    Platform->>NotificationController: broadcastNotification()
+    NotificationController-->>Student: Notification sent to Management
 ```
 
 ---
@@ -134,26 +132,21 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor Teacher
-    actor Management
-    actor Student as StudentAccount
-    participant Platform
-    participant CoachingSession
-    participant SessionStudent
-    participant FinancialEntry
-    participant Notification
+    participant Platform as Platform
+    participant TeacherController as TeacherController
+    participant CoachingService as CoachingService
+    participant NotificationController as NotificationController
 
-    Note over CoachingSession: Status: SCHEDULED – student absent, no prior notice
-    Teacher->>Platform: recordNoShow()
-    Platform->>SessionStudent: markAttendance(NO_SHOW)
-    Platform->>CoachingSession: recordNoShow()
-    Platform->>Notification: Notify Management – no-show recorded
-    Notification-->>Management: No-show requires final audit
-    Management->>Platform: Apply 100% penalty (final audit)
-    Platform->>CoachingSession: calculateFinalPrice() → 100%
-    Platform->>FinancialEntry: Create entry (type: NO_SHOW_PENALTY, amount: full price)
-    Platform->>Notification: Notify Student – 100% charge applied
-    Notification-->>Student: No-show penalty charged
-    Note over FinancialEntry: Accounting table updated
+    Note over TeacherController: Session Status: SCHEDULED – student absent
+    Teacher->>Platform: registerNoShow(sessionId)
+    Platform->>TeacherController: registerNoShow(sessionId)
+    TeacherController->>CoachingService: registerNoShow(sessionId)
+    CoachingService-->>TeacherController: { session }
+    TeacherController-->>Platform: { session }
+    Platform-->>Teacher: No-show recorded
+
+    Platform->>NotificationController: broadcastNotification()
+    NotificationController-->>Teacher: Notification sent to Management
 ```
 
 ---
@@ -162,44 +155,44 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Student as StudentAccount
+    actor Student
     actor Teacher
-    actor Management
-    participant Platform
-    participant CoachingSession
-    participant CoachingJoinRequest
-    participant SessionStudent
-    participant Notification
+    actor Admin
+    participant Platform as Platform
+    participant JoinRequestController as JoinRequestController
+    participant CoachingController as CoachingController
+    participant NotificationController as NotificationController
 
-    Student->>Platform: submitJoinRequest()
-    Platform->>CoachingSession: Check available capacity (maxParticipants vs enrolled)
-    alt Capacity available
-        CoachingSession-->>Platform: Capacity available
-        Platform->>CoachingJoinRequest: requestJoin()
-        Platform->>Notification: Notify Teacher – join request pending
-        Notification-->>Teacher: Student requests to join your session
-        Teacher->>Platform: approveByTeacher()
-        Platform->>CoachingJoinRequest: approveByTeacher()
-        Platform->>Notification: Notify Management – teacher approved, awaiting final validation
-        Notification-->>Management: Join request pending your approval
-        alt Management approves
-            Management->>Platform: approveByManagement()
-            Platform->>CoachingJoinRequest: approveByManagement()
-            Platform->>SessionStudent: enrollStudent(student)
-            Platform->>Notification: Notify Student – session membership confirmed
-            Notification-->>Student: You have been added to the session
-        else Management rejects
-            Management->>Platform: rejectRequest()
-            Platform->>CoachingJoinRequest: reject()
-            Platform->>Notification: Notify Student – request rejected
-            Notification-->>Student: Join request was rejected
-        end
-    else Capacity full
-        CoachingSession-->>Platform: Capacity full
-        Platform->>CoachingJoinRequest: reject()
-        Platform->>Notification: Notify Student – session full
-        Notification-->>Student: Join request rejected due to capacity
-    end
+    Student->>Platform: submitJoinRequest(sessionId)
+    Platform->>JoinRequestController: submitJoinRequest(sessionId)
+    JoinRequestController->>JoinRequestController: createJoinRequest(sessionId)
+    JoinRequestController-->>Platform: { joinRequest }
+    Platform-->>Student: Join request submitted
+
+    Teacher->>Platform: getTeacherPendingJoinRequests()
+    Platform->>JoinRequestController: getTeacherPendingJoinRequests()
+    JoinRequestController-->>Platform: { joinRequests }
+    Platform-->>Teacher: Display pending join requests
+
+    Teacher->>Platform: teacherApprove(joinRequestId)
+    Platform->>JoinRequestController: teacherApproveJoinRequest(joinRequestId)
+    JoinRequestController->>JoinRequestController: teacherApprove(joinRequestId)
+    JoinRequestController-->>Platform: { joinRequest }
+    Platform-->>Teacher: Request approved by teacher
+
+    Admin->>Platform: getAdminPendingJoinRequests()
+    Platform->>JoinRequestController: getAdminPendingJoinRequests()
+    JoinRequestController-->>Platform: { joinRequests }
+    Platform-->>Admin: Display pending join requests
+
+    Admin->>Platform: adminApprove(joinRequestId)
+    Platform->>JoinRequestController: adminApproveJoinRequest(joinRequestId)
+    JoinRequestController->>JoinRequestController: adminApprove(joinRequestId)
+    JoinRequestController-->>Platform: { joinRequest }
+    Platform-->>Admin: Request approved by admin
+
+    Platform->>NotificationController: broadcastNotification()
+    NotificationController-->>Student: Notification sent to Student
 ```
 
 ---
@@ -209,46 +202,42 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor Teacher
-    actor Management
-    actor Student as StudentAccount
-    participant Platform
-    participant TeacherAvailability
-    participant TeacherAvailabilityRecurring
-    participant Notification
+    actor Admin
+    participant Platform as Platform
+    participant AvailabilityController as AvailabilityController
+    participant TeacherController as TeacherController
+    participant NotificationController as NotificationController
 
     Note over Platform: New academic year begins
-    Teacher->>Platform: submitAvailability()
-    loop For each availability slot
-        Platform->>TeacherAvailabilityRecurring: storeSlot(dayOfWeek, startTime, endTime)
+    Teacher->>Platform: submitAvailability(slots)
+    Platform->>AvailabilityController: submitAvailability(slots)
+    activate AvailabilityController
+    AvailabilityController->>AvailabilityController: submitTeacherAvailability(teacherUserId, slots)
+    AvailabilityController-->>Platform: { availability }
+    deactivate AvailabilityController
+    Platform-->>Teacher: Availability submitted (Pending Review)
+
+    Admin->>Platform: getAdminPendingAvailability()
+    Platform->>AvailabilityController: getAdminPendingAvailability()
+    AvailabilityController-->>Platform: { availabilities }
+    Platform-->>Admin: Display pending availabilities
+
+    alt Admin approves
+        Admin->>Platform: approveAvailability(availabilityId)
+        Platform->>AvailabilityController: approveAvailability(availabilityId)
+        AvailabilityController->>AvailabilityController: approveAvailability(availabilityId)
+        AvailabilityController-->>Platform: { availability }
+        Platform-->>Admin: Availability approved
+    else Admin rejects
+        Admin->>Platform: rejectAvailability(availabilityId, reason)
+        Platform->>AvailabilityController: rejectAvailability(availabilityId, reason)
+        AvailabilityController->>AvailabilityController: rejectAvailability(availabilityId, reason)
+        AvailabilityController-->>Platform: { availability }
+        Platform-->>Admin: Availability rejected
     end
-    TeacherAvailabilityRecurring-->>Platform: All slots saved
-    Platform->>Notification: Notify Management – availability submitted
-    Notification-->>Management: Teacher availability ready for review
-    Management->>Platform: Audit and validate global availability map
-    alt Conflicts found
-        Platform->>TeacherAvailability: reject()
-        Platform->>Notification: Notify Teacher – conflicting slots need revision
-        Notification-->>Teacher: Please update the conflicting availability
-        Teacher->>Platform: submitAvailability()
-        loop For each revised slot
-            Platform->>TeacherAvailabilityRecurring: storeSlot(dayOfWeek, startTime, endTime)
-        end
-    else Coverage gaps found
-        Platform->>TeacherAvailability: reject()
-        Platform->>Notification: Notify Teacher – coverage gaps need filling
-        Notification-->>Teacher: Please add the missing coverage
-        Teacher->>Platform: submitAvailability()
-        loop For each added slot
-            Platform->>TeacherAvailabilityRecurring: storeSlot(dayOfWeek, startTime, endTime)
-        end
-    else Availability validated
-        Management->>Platform: approveByManagement()
-        Platform->>TeacherAvailability: approve()
-        Teacher->>Platform: confirmPublication()
-        Platform->>Platform: publishAvailability()
-        Platform->>Notification: Publish available slots to students
-        Notification-->>Student: New coaching slots are available
-    end
+
+    Platform->>NotificationController: broadcastNotification()
+    NotificationController-->>Teacher: Notification sent to Teacher
 ```
 
 ---
@@ -257,38 +246,33 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor InterestedParty as Student / Parent
-    actor SchoolOwner as School (Item Owner)
-    participant Platform
-    participant InventoryItem
-    participant InventoryTransaction
-    participant Notification
+    actor Student
+    actor Admin
+    participant Platform as Platform
+    participant InventoryController as InventoryController
+    participant InventoryService as InventoryService
+    participant InventoryUseCases as InventoryUseCases
 
-    InterestedParty->>Platform: browseSchoolInventory()
-    Platform->>InventoryItem: publish()
-    InventoryItem-->>Platform: Available items
-    Platform-->>InterestedParty: Display catalog
-    InterestedParty->>Platform: requestRental(itemId, rentalPeriod)
-    Platform->>Notification: Notify school owner of rental interest
-    Notification-->>SchoolOwner: Rental interest received
-    SchoolOwner->>Platform: reviewConditionAndReturnDate()
+    Student->>Platform: browseInventory()
+    Platform->>InventoryController: listItems(query)
+    InventoryController->>InventoryService: listItems(query)
+    InventoryService-->>InventoryController: { items }
+    InventoryController-->>Platform: { items }
+    Platform-->>Student: Display catalog
 
-    alt Rental approved
-        SchoolOwner->>Platform: confirmTerms(symbolicFee, rentalPeriod)
-        InterestedParty->>Platform: processInventoryRental(itemId, rentalPeriod)
-        Platform->>InventoryItem: startRental()
-        Platform->>InventoryTransaction: startRental()
-        Platform->>InventoryTransaction: completeRental()
-        Platform->>Notification: confirmRentalToBothParties()
-        Notification-->>InterestedParty: Rental confirmed
-        Notification-->>SchoolOwner: Rental confirmed
-    else Rental rejected
-        SchoolOwner->>Platform: rejectRequest(reason)
-        Platform->>Notification: notifyRentalRejection()
-        Notification-->>InterestedParty: Rental request rejected
-    end
+    Student->>Platform: requestRental(itemId, rentalPeriod)
+    Platform->>InventoryController: createRental(payload)
+    InventoryController->>InventoryUseCases: execute(renterId, payload)
+    InventoryUseCases-->>InventoryController: { rental, checkoutSummary }
+    InventoryController-->>Platform: { rental, checkoutSummary }
+    Platform-->>Student: Rental created
 
-    Note over InventoryTransaction: On return – returnVerified: true, isCompleted: true
+    Admin->>Platform: verifyReturn(rentalId)
+    Platform->>InventoryController: listRentals()
+    InventoryController->>InventoryService: listRentalsByRenterId(renterId)
+    InventoryService-->>InventoryController: { rentals }
+    InventoryController-->>Platform: { rentals }
+    Platform-->>Admin: Display rentals
 ```
 
 ---
@@ -297,35 +281,39 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Buyer
-    actor Seller as Item Owner (Teacher / Student)
-    participant Platform
-    participant MarketplaceItem
-    participant MarketplaceTransaction
-    participant Notification
+    actor Student
+    participant Platform as Platform
+    participant MarketplaceController as MarketplaceController
+    participant MarketplaceService as MarketplaceService
 
-    Buyer->>Platform: browseMarketplace()
-    Platform->>MarketplaceItem: publish()
-    MarketplaceItem-->>Platform: Available listings
-    Platform-->>Buyer: Display items
-    Buyer->>Platform: requestInterest(itemId)
-    Platform->>Notification: Notify Seller of buyer interest
-    Notification-->>Seller: Someone is interested in your item
-    Seller->>Platform: confirmTerms()
+    Student->>Platform: browseMarketplace()
+    Platform->>MarketplaceController: getListings(query)
+    MarketplaceController->>MarketplaceService: getListings(query)
+    MarketplaceService-->>MarketplaceController: { listings }
+    MarketplaceController-->>Platform: { listings }
+    Platform-->>Student: Display items
 
-    alt Agreement reached
-        Platform->>MarketplaceItem: reserve()
-        Buyer->>Platform: processMarketplaceTransaction(itemId)
-        Platform->>MarketplaceTransaction: complete()
-        Platform->>MarketplaceItem: close()
-        Platform->>Notification: notifyTransactionCompletion()
-        Notification-->>Buyer: Transaction completed
-        Notification-->>Seller: Transaction completed
-    else Agreement rejected
-        Seller->>Platform: rejectRequest(reason)
-        Platform->>Notification: notifyBuyerRejection()
-        Notification-->>Buyer: Offer rejected
-    end
+    Student->>Platform: createListing(itemData)
+    Platform->>MarketplaceController: createListing(itemData)
+    MarketplaceController->>MarketplaceService: createListing(sellerId, itemData)
+    MarketplaceService-->>MarketplaceController: { listing }
+    MarketplaceController-->>Platform: { listing }
+    Platform-->>Student: Listing created
+
+    Student->>Platform: getMyListings()
+    Platform->>MarketplaceController: getMyListings()
+    MarketplaceController-->>Platform: { listings }
+    Platform-->>Student: Display my listings
+
+    Student->>Platform: updateListing(listingId, updateData)
+    Platform->>MarketplaceController: updateListing(listingId, updateData)
+    MarketplaceController-->>Platform: { listing }
+    Platform-->>Student: Listing updated
+
+    Student->>Platform: deleteListing(listingId)
+    Platform->>MarketplaceController: deleteListing(listingId)
+    MarketplaceController-->>Platform: { listing }
+    Platform-->>Student: Listing deleted
 ```
 
 ---
@@ -334,20 +322,31 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Management
-    participant Platform
-    participant FinancialEntry
-    participant FinancialSummary
+    actor Admin
+    participant Platform as Platform
+    participant FinanceController as FinanceController
+    participant FinanceService as FinanceService
 
-    Management->>Platform: generateFinancialSummary(periodStart, periodEnd)
-    Platform->>FinancialEntry: collectEntries(periodStart, periodEnd)
-    FinancialEntry-->>Platform: Entry list (COACHING_CHARGE, NO_SHOW_PENALTY, INVENTORY_RENTAL_FEE, etc.)
-    Platform->>FinancialSummary: generate()
-    FinancialSummary-->>Platform: Summary created
-    Platform-->>Management: Display summary table
-    Management->>Platform: Export summary to accounting
-    Platform->>FinancialSummary: exportToAccounting()
-    Platform-->>Management: Export file ready (Excel / CSV)
+    Admin->>Platform: generateFinancialSummary(periodStart, periodEnd)
+    Platform->>FinanceController: listTransactions(periodStart, periodEnd)
+    FinanceController->>FinanceService: listTransactions({ periodStart, periodEnd })
+    FinanceService-->>FinanceController: { transactions }
+    FinanceController-->>Platform: { transactions }
+    Platform-->>Admin: Display summary table
+
+    Admin->>Platform: getFinancialSummary(periodStart, periodEnd)
+    Platform->>FinanceController: getSummary(periodStart, periodEnd)
+    FinanceController->>FinanceService: getSummary({ periodStart, periodEnd })
+    FinanceService-->>FinanceController: { summary }
+    FinanceController-->>Platform: { summary }
+    Platform-->>Admin: Display summary
+
+    Admin->>Platform: exportTransactions(periodStart, periodEnd)
+    Platform->>FinanceController: exportTransactions(periodStart, periodEnd)
+    FinanceController->>FinanceService: exportTransactions({ periodStart, periodEnd })
+    FinanceService-->>FinanceController: { csv, count }
+    FinanceController-->>Platform: { csv }
+    Platform-->>Admin: Download CSV
 ```
 
 ---
@@ -356,26 +355,313 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor SM as School Management
-    actor Student as Student / Guardian
-    participant Platform
-    participant LostAndFoundItem
+    actor Admin
+    actor Student
+    participant Platform as Platform
+    participant LostFoundController as LostFoundController
+    participant LostFoundService as LostFoundService
 
-    Note over SM, Platform: School Management registers a found item
-    SM->>Platform: Add found item (title, description, photo, findDate)
-    Platform->>LostAndFoundItem: publish()
-    LostAndFoundItem-->>Platform: Item stored
-    Platform-->>SM: Item published on Lost & Found page
+    Note over Admin: School Management registers a found item
+    Admin->>Platform: addFoundItem(itemData)
+    Platform->>LostFoundController: createFoundItem(itemData)
+    LostFoundController->>LostFoundService: createItem(itemData, userId, role)
+    LostFoundService-->>LostFoundController: { item }
+    LostFoundController-->>Platform: { item }
+    Platform-->>Admin: Item published
 
-    Note over Student, Platform: Student browses lost and found page
-    Student->>Platform: View lost and found list
-    Platform->>LostAndFoundItem: Fetch all active entries
-    LostAndFoundItem-->>Platform: Return item list
+    Student->>Platform: viewLostAndFound()
+    Platform->>LostFoundController: listPublicItems()
+    LostFoundController->>LostFoundService: listPublicItems()
+    LostFoundService-->>LostFoundController: { items }
+    LostFoundController-->>Platform: { items }
     Platform-->>Student: Display found items
 
-    Note over SM, Platform: School Management marks an item as claimed
-    SM->>Platform: Mark found item as claimed (LostFoundID)
-    Platform->>LostAndFoundItem: markClaimed()
-    LostAndFoundItem-->>Platform: Entry updated
-    Platform-->>SM: Item updated in Lost & Found page
+    Admin->>Platform: claimItem(itemId, adminNotes)
+    Platform->>LostFoundController: claimItem(itemId, adminNotes)
+    LostFoundController->>LostFoundService: claimItem(itemId, adminNotes, role)
+    LostFoundService-->>LostFoundController: { item }
+    LostFoundController-->>Platform: { item }
+    Platform-->>Admin: Item marked as claimed
+
+    Admin->>Platform: archiveItem(itemId, adminNotes)
+    Platform->>LostFoundController: archiveItem(itemId, adminNotes)
+    LostFoundController->>LostFoundService: archiveItem(itemId, adminNotes, role)
+    LostFoundService-->>LostFoundController: { item }
+    LostFoundController-->>Platform: { item }
+    Platform-->>Admin: Item archived
+```
+
+---
+
+## SD-12: Admin User Management
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant Platform as Platform
+    participant AdminController as AdminController
+    participant AdminUserUseCases as AdminUserUseCases
+
+    Admin->>Platform: listUsers()
+    Platform->>AdminController: listUsers()
+    AdminController->>AdminController: listUsers()
+    AdminController-->>Platform: { users }
+    Platform-->>Admin: Display user list
+
+    Admin->>Platform: createUser(userData)
+    Platform->>AdminController: createUser(userData)
+    AdminController->>AdminUserUseCases: execute(payload)
+    AdminUserUseCases-->>AdminController: { user }
+    AdminController-->>Platform: { user }
+    Platform-->>Admin: User created
+
+    Admin->>Platform: updateUser(userId, updateData)
+    Platform->>AdminController: updateUser(userId, updateData)
+    AdminController->>AdminController: updateUser(userId, updateData)
+    AdminController-->>Platform: { user }
+    Platform-->>Admin: User updated
+
+    Admin->>Platform: updateUserRoles(userId, roles)
+    Platform->>AdminController: updateUserRoles(userId, roles)
+    AdminController->>AdminController: updateUserRoles(userId, roles)
+    AdminController-->>Platform: { user }
+    Platform-->>Admin: Roles updated
+
+    Admin->>Platform: deleteUser(userId)
+    Platform->>AdminController: deleteUser(userId)
+    AdminController->>AdminController: deleteUser(userId)
+    AdminController-->>Platform: { user }
+    Platform-->>Admin: User deleted (soft delete)
+```
+
+---
+
+## SD-13: Teacher Admission Request Review
+
+```mermaid
+sequenceDiagram
+    actor Teacher
+    actor Admin
+    actor Student
+    participant Platform as Platform
+    participant TeacherController as TeacherController
+    participant JoinRequestController as JoinRequestController
+    participant AdminController as AdminController
+
+    Student->>Platform: submitJoinRequest(sessionId)
+    Platform->>JoinRequestController: submitJoinRequest(sessionId)
+    JoinRequestController-->>Platform: { joinRequest }
+    Platform-->>Student: Request submitted
+
+    Teacher->>Platform: getAdmissionRequests()
+    Platform->>TeacherController: getAdmissionRequests()
+    TeacherController-->>Platform: { admissionRequests }
+    Platform-->>Teacher: Display admission requests
+
+    Teacher->>Platform: reviewAdmissionRequest(joinRequestId, decision)
+    Platform->>TeacherController: reviewAdmissionRequest(joinRequestId, decision)
+    TeacherController->>TeacherController: reviewAdmissionRequest(joinRequestId, decision)
+    TeacherController-->>Platform: { admissionRequest }
+    Platform-->>Teacher: Request reviewed
+
+    Admin->>Platform: getAdminPendingJoinRequests()
+    Platform->>JoinRequestController: getAdminPendingJoinRequests()
+    JoinRequestController-->>Platform: { joinRequests }
+    Platform-->>Admin: Display pending join requests
+
+    Admin->>Platform: adminApprove(joinRequestId)
+    Platform->>JoinRequestController: adminApproveJoinRequest(joinRequestId)
+    JoinRequestController->>JoinRequestController: adminApprove(joinRequestId)
+    JoinRequestController-->>Platform: { joinRequest }
+    Platform-->>Admin: Request approved
+```
+
+---
+
+## SD-14: Notification Management
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Platform as Platform
+    participant NotificationController as NotificationController
+    participant NotificationService as NotificationService
+
+    User->>Platform: getNotifications()
+    Platform->>NotificationController: getNotifications()
+    NotificationController->>NotificationService: getAllByUser(userId)
+    NotificationService-->>NotificationController: { notifications }
+    NotificationController-->>Platform: { notifications }
+    Platform-->>User: Display notifications
+
+    User->>Platform: markAsRead(notificationId)
+    Platform->>NotificationController: markAsRead(notificationId)
+    NotificationController->>NotificationService: markAsRead(notificationId, userId)
+    NotificationService-->>NotificationController: { success }
+    NotificationController-->>Platform: { success: true }
+    Platform-->>User: Notification marked as read
+
+    User->>Platform: removeNotification(notificationId)
+    Platform->>NotificationController: removeNotification(notificationId)
+    NotificationController->>NotificationService: remove(notificationId, userId)
+    NotificationService-->>NotificationController: { success }
+    NotificationController-->>Platform: { success: true }
+    Platform-->>User: Notification removed
+```
+
+---
+
+## SD-15: Student Dashboard and Schedule
+
+```mermaid
+sequenceDiagram
+    actor Student
+    participant Platform as Platform
+    participant StudentController as StudentController
+    participant CoachingController as CoachingController
+
+    Student->>Platform: getDashboard()
+    Platform->>StudentController: getDashboard()
+    StudentController-->>Platform: { dashboard }
+    Platform-->>Student: Display dashboard
+
+    Student->>Platform: getUpcomingSchedule()
+    Platform->>StudentController: getUpcomingSchedule()
+    StudentController->>StudentController: getUpcomingSchedule(studentUserId)
+    StudentController-->>Platform: { schedule }
+    Platform-->>Student: Display upcoming schedule
+
+    Student->>Platform: getSessionHistory()
+    Platform->>CoachingController: getSessionHistory()
+    CoachingController->>CoachingService: getSessionHistory(studentUserId)
+    CoachingService-->>CoachingController: { sessions }
+    CoachingController-->>Platform: { sessions }
+    Platform-->>Student: Display session history
+```
+
+---
+
+## SD-16: Teacher Dashboard and Today Schedule
+
+```mermaid
+sequenceDiagram
+    actor Teacher
+    participant Platform as Platform
+    participant TeacherController as TeacherController
+
+    Teacher->>Platform: getDashboard()
+    Platform->>TeacherController: getDashboard()
+    TeacherController-->>Platform: { dashboard }
+    Platform-->>Teacher: Display dashboard
+
+    Teacher->>Platform: getTodaySchedule()
+    Platform->>TeacherController: getTodaySchedule()
+    TeacherController->>TeacherController: getTodaySchedule(teacherUserId)
+    TeacherController-->>Platform: { schedule }
+    Platform-->>Teacher: Display today's schedule
+
+    Teacher->>Platform: getActiveSessions()
+    Platform->>TeacherController: getActiveSessions()
+    TeacherController-->>Platform: { sessions }
+    Platform-->>Teacher: Display active sessions
+```
+
+---
+
+## SD-17: Admin Dashboard and Operational Summary
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant Platform as Platform
+    participant AdminController as AdminController
+
+    Admin->>Platform: getDashboard()
+    Platform->>AdminController: getDashboard()
+    AdminController->>AdminController: getDashboard()
+    AdminController-->>Platform: { dashboard }
+    Platform-->>Admin: Display dashboard
+
+    Admin->>Platform: getOperationalSummary()
+    Platform->>AdminController: getOperationalSummary()
+    AdminController->>AdminController: getOperationalSummary()
+    AdminController-->>Platform: { operationalSummary }
+    Platform-->>Admin: Display operational summary
+
+    Admin->>Platform: getStudioOccupancy()
+    Platform->>AdminController: getStudioOccupancy()
+    AdminController->>AdminController: getStudioOccupancy()
+    AdminController-->>Platform: { studioOccupancy }
+    Platform-->>Admin: Display studio occupancy
+```
+
+---
+
+## SD-18: Auth Token Refresh
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Platform as Platform
+    participant AuthController as AuthController
+    participant JwtService as JwtService
+
+    User->>Platform: openApp()
+    activate Platform
+    Platform->>AuthController: refreshToken()
+    activate AuthController
+    AuthController->>JwtService: rotateRefreshToken(refreshToken)
+    JwtService-->>AuthController: { accessToken, newRefreshToken }
+    AuthController-->>Platform: { accessToken }
+    deactivate AuthController
+    Platform-->>User: App authenticated
+    deactivate Platform
+```
+
+---
+
+## SD-19: Role Switch
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Platform as Platform
+    participant AuthController as AuthController
+
+    User->>Platform: switchRole(newRole)
+    Platform->>AuthController: switchRole(newRole)
+    AuthController->>AuthController: switchRole(userId, newRole)
+    AuthController-->>Platform: { user }
+    Platform-->>User: View switched to new role
+```
+
+---
+
+## SD-20: Admin Session Approval (Legacy)
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant Platform as Platform
+    participant AdminController as AdminController
+    participant AdminSessionUseCases as AdminSessionUseCases
+
+    Admin->>Platform: getPendingApprovalSessions()
+    Platform->>AdminController: getPendingApprovalSessions()
+    AdminController-->>Platform: { sessions }
+    Platform-->>Admin: Display pending sessions
+
+    Admin->>Platform: approveSession(sessionId)
+    Platform->>AdminController: approveSession(sessionId)
+    AdminController->>AdminSessionUseCases: execute(sessionId)
+    AdminSessionUseCases-->>AdminController: { session }
+    AdminController-->>Platform: { session }
+    Platform-->>Admin: Session approved
+
+    Admin->>Platform: rejectSession(sessionId, reason)
+    Platform->>AdminController: rejectSession(sessionId, reason)
+    AdminController->>AdminSessionUseCases: execute(sessionId, reason)
+    AdminSessionUseCases-->>AdminController: { session }
+    AdminController-->>Platform: { session }
+    Platform-->>Admin: Session rejected
 ```
