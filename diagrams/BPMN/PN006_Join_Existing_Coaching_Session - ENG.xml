@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_6" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.13.2">
+  <bpmn:collaboration id="Collaboration_6">
+    <bpmn:participant id="Participant_6" name="Entartes School - Join Existing Coaching Session" processRef="Process_6" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_6" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_6">
+      <bpmn:lane id="Lane_Student" name="Student">
+        <bpmn:flowNodeRef>StartEvent_Need</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BrowseSchedule</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FindSessionWithSpots</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ShowCapacityError</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ClickAderir</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PromptLogin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ConfirmInModal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitJoinRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ShowServerError</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AlreadyExists</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_CapacityError</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_NotAuthenticated</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_ServerError</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_AlreadyPending</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SeeExistingStatus</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Teacher" name="Teacher">
+        <bpmn:flowNodeRef>Task_OpenAdmissionRequests</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_TeacherReviewJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_TeacherDecision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RejectJoinTeacher</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Admin" name="Management">
+        <bpmn:flowNodeRef>Task_OpenValidationsAdesoes</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdminReviewJoin</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AdminDecision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Joined</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdminRejectJoin</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_Need" name="Wants to join an existing session">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_BrowseSchedule" name="Browse Coaching Schedule">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_FindSessionWithSpots" name="Find Duo/Group Session With Spots — check remaining spots (UI hides Join if none)">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ShowCapacityError" name="Show &#39;Session full&#39; message (UI pre-check — Join hidden)">
+      <bpmn:incoming>Flow_CapacityChanged</bpmn:incoming>
+      <bpmn:outgoing>Flow_CapacityEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ClickAderir" name="Click Join (Aderir) on Session Card">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_PromptLogin" name="Prompt Login / Show login modal">
+      <bpmn:incoming>Flow_AuthError</bpmn:incoming>
+      <bpmn:outgoing>Flow_AuthEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ConfirmInModal" name="Confirm in Modal">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SubmitJoinRequest" name="Submit Join Request">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ShowServerError" name="Show server error &#38; retry (frontend shows message)">
+      <bpmn:incoming>Flow_ServerError</bpmn:incoming>
+      <bpmn:outgoing>Flow_ServerEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_AlreadyExists" name="Request already pending? (frontend treats 409 as pending)">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_AlreadyYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_AlreadyNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_OpenAdmissionRequests" name="Open Admission Requests Page">
+      <bpmn:incoming>Flow_AlreadyNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_TeacherReviewJoin" name="Review Capacity and Pedagogical Fit">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_TeacherDecision" name="Approve?">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_TeacherYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_TeacherNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_RejectJoinTeacher" name="Reject with Observations (mandatory)">
+      <bpmn:incoming>Flow_TeacherNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_TeacherRejectToEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_OpenValidationsAdesoes" name="Open Validations Queue (Adesoes tab)">
+      <bpmn:incoming>Flow_TeacherYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_AdminReviewJoin" name="Review Pending Join Request">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_AdminDecision" name="Approve?">
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_AdminYes</bpmn:outgoing>
+      <bpmn:outgoing>Flow_AdminNo</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_Joined" name="Student added to session">
+      <bpmn:incoming>Flow_AdminYes</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_Rejected" name="Join request rejected">
+      <bpmn:incoming>Flow_TeacherRejectToEnd</bpmn:incoming>
+      <bpmn:incoming>Flow_AdminRejectToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_CapacityError" name="Session full / capacity error">
+      <bpmn:incoming>Flow_CapacityEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_NotAuthenticated" name="Authentication required">
+      <bpmn:incoming>Flow_AuthEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_ServerError" name="Server error - try later">
+      <bpmn:incoming>Flow_ServerEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Need" targetRef="Task_BrowseSchedule" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_BrowseSchedule" targetRef="Task_FindSessionWithSpots" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_FindSessionWithSpots" targetRef="Task_ClickAderir" />
+    <bpmn:sequenceFlow id="Flow_CapacityChanged" name="No spots (UI hides Join)" sourceRef="Task_FindSessionWithSpots" targetRef="Task_ShowCapacityError" />
+    <bpmn:sequenceFlow id="Flow_CapacityEnd" sourceRef="Task_ShowCapacityError" targetRef="EndEvent_CapacityError" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_ClickAderir" targetRef="Task_ConfirmInModal" />
+    <bpmn:sequenceFlow id="Flow_AuthError" name="401" sourceRef="Task_ClickAderir" targetRef="Task_PromptLogin" />
+    <bpmn:sequenceFlow id="Flow_AuthEnd" sourceRef="Task_PromptLogin" targetRef="EndEvent_NotAuthenticated" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_ConfirmInModal" targetRef="Task_SubmitJoinRequest" />
+    <bpmn:sequenceFlow id="Flow_ServerError" name="5xx" sourceRef="Task_SubmitJoinRequest" targetRef="Task_ShowServerError" />
+    <bpmn:sequenceFlow id="Flow_ServerEnd" sourceRef="Task_ShowServerError" targetRef="EndEvent_ServerError" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_SubmitJoinRequest" targetRef="Gateway_AlreadyExists" />
+    <bpmn:sequenceFlow id="Flow_AlreadyYes" name="Yes (409) — frontend treats 409 as pending" sourceRef="Gateway_AlreadyExists" targetRef="Task_SeeExistingStatus" />
+    <bpmn:sequenceFlow id="Flow_AlreadyNo" name="No" sourceRef="Gateway_AlreadyExists" targetRef="Task_OpenAdmissionRequests" />
+    <bpmn:sequenceFlow id="Flow_AlreadyEnd" sourceRef="Task_SeeExistingStatus" targetRef="EndEvent_AlreadyPending" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_OpenAdmissionRequests" targetRef="Task_TeacherReviewJoin" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_TeacherReviewJoin" targetRef="Gateway_TeacherDecision" />
+    <bpmn:sequenceFlow id="Flow_TeacherYes" name="Approve" sourceRef="Gateway_TeacherDecision" targetRef="Task_OpenValidationsAdesoes" />
+    <bpmn:sequenceFlow id="Flow_TeacherNo" name="Reject" sourceRef="Gateway_TeacherDecision" targetRef="Task_RejectJoinTeacher" />
+    <bpmn:sequenceFlow id="Flow_TeacherRejectToEnd" sourceRef="Task_RejectJoinTeacher" targetRef="EndEvent_Rejected" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_OpenValidationsAdesoes" targetRef="Task_AdminReviewJoin" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_AdminReviewJoin" targetRef="Gateway_AdminDecision" />
+    <bpmn:sequenceFlow id="Flow_AdminYes" name="Approve" sourceRef="Gateway_AdminDecision" targetRef="EndEvent_Joined" />
+    <bpmn:sequenceFlow id="Flow_AdminNo" name="Reject" sourceRef="Gateway_AdminDecision" targetRef="Task_AdminRejectJoin" />
+    <bpmn:sequenceFlow id="Flow_AdminRejectToEnd" sourceRef="Task_AdminRejectJoin" targetRef="EndEvent_Rejected" />
+    <bpmn:endEvent id="EndEvent_AlreadyPending" name="Already pending (no change)">
+      <bpmn:incoming>Flow_AlreadyEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_SeeExistingStatus" name="See Existing Request Status (no new request)">
+      <bpmn:incoming>Flow_AlreadyYes</bpmn:incoming>
+      <bpmn:outgoing>Flow_AlreadyEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_AdminRejectJoin" name="Reject Join Request">
+      <bpmn:incoming>Flow_AdminNo</bpmn:incoming>
+      <bpmn:outgoing>Flow_AdminRejectToEnd</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_6">
+    <bpmndi:BPMNPlane id="BPMNPlane_6" bpmnElement="Collaboration_6">
+      <bpmndi:BPMNShape id="Participant_6_di" bpmnElement="Participant_6" isHorizontal="true">
+        <dc:Bounds x="120" y="80" width="1600" height="640" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Admin_di" bpmnElement="Lane_Admin" isHorizontal="true">
+        <dc:Bounds x="150" y="500" width="1570" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Teacher_di" bpmnElement="Lane_Teacher" isHorizontal="true">
+        <dc:Bounds x="150" y="300" width="1570" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Student_di" bpmnElement="Lane_Student" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1570" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_Need_di" bpmnElement="StartEvent_Need">
+        <dc:Bounds x="200" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="180" y="215" width="80" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_BrowseSchedule_di" bpmnElement="Task_BrowseSchedule">
+        <dc:Bounds x="280" y="150" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FindSessionWithSpots_di" bpmnElement="Task_FindSessionWithSpots">
+        <dc:Bounds x="420" y="150" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ClickAderir_di" bpmnElement="Task_ClickAderir">
+        <dc:Bounds x="560" y="150" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ConfirmInModal_di" bpmnElement="Task_ConfirmInModal">
+        <dc:Bounds x="700" y="150" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SubmitJoinRequest_di" bpmnElement="Task_SubmitJoinRequest">
+        <dc:Bounds x="840" y="150" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AlreadyExists_di" bpmnElement="Gateway_AlreadyExists" isMarkerVisible="true">
+        <dc:Bounds x="985" y="165" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="969" y="103" width="84" height="53" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenAdmissionRequests_di" bpmnElement="Task_OpenAdmissionRequests">
+        <dc:Bounds x="950" y="350" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TeacherReviewJoin_di" bpmnElement="Task_TeacherReviewJoin">
+        <dc:Bounds x="1110" y="350" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_TeacherDecision_di" bpmnElement="Gateway_TeacherDecision" isMarkerVisible="true">
+        <dc:Bounds x="1275" y="365" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1278" y="335" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RejectJoinTeacher_di" bpmnElement="Task_RejectJoinTeacher">
+        <dc:Bounds x="1360" y="350" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenValidationsAdesoes_di" bpmnElement="Task_OpenValidationsAdesoes">
+        <dc:Bounds x="1110" y="540" width="140" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AdminReviewJoin_di" bpmnElement="Task_AdminReviewJoin">
+        <dc:Bounds x="1280" y="540" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AdminDecision_di" bpmnElement="Gateway_AdminDecision" isMarkerVisible="true">
+        <dc:Bounds x="1445" y="555" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1448" y="530" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Joined_di" bpmnElement="EndEvent_Joined">
+        <dc:Bounds x="1620" y="562" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1597" y="605" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Rejected_di" bpmnElement="EndEvent_Rejected">
+        <dc:Bounds x="1620" y="652" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1594" y="695" width="88" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_AlreadyPending_di" bpmnElement="EndEvent_AlreadyPending">
+        <dc:Bounds x="1402" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1380" y="215" width="83" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SeeExistingStatus_di" bpmnElement="Task_SeeExistingStatus">
+        <dc:Bounds x="1190" y="150" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AdminRejectJoin_di" bpmnElement="Task_AdminRejectJoin">
+        <dc:Bounds x="1410" y="640" width="120" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="236" y="190" />
+        <di:waypoint x="280" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="390" y="190" />
+        <di:waypoint x="420" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="530" y="190" />
+        <di:waypoint x="560" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="670" y="190" />
+        <di:waypoint x="700" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="810" y="190" />
+        <di:waypoint x="840" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="950" y="190" />
+        <di:waypoint x="985" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AlreadyYes_di" bpmnElement="Flow_AlreadyYes">
+        <di:waypoint x="1035" y="190" />
+        <di:waypoint x="1190" y="190" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1090" y="200" width="76" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AlreadyNo_di" bpmnElement="Flow_AlreadyNo">
+        <di:waypoint x="1010" y="215" />
+        <di:waypoint x="1010" y="350" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1022" y="323" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AlreadyEnd_di" bpmnElement="Flow_AlreadyEnd">
+        <di:waypoint x="1310" y="190" />
+        <di:waypoint x="1402" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="1080" y="390" />
+        <di:waypoint x="1110" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="1240" y="390" />
+        <di:waypoint x="1275" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TeacherYes_di" bpmnElement="Flow_TeacherYes">
+        <di:waypoint x="1300" y="415" />
+        <di:waypoint x="1300" y="470" />
+        <di:waypoint x="1180" y="470" />
+        <di:waypoint x="1180" y="540" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1307" y="435" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TeacherNo_di" bpmnElement="Flow_TeacherNo">
+        <di:waypoint x="1325" y="390" />
+        <di:waypoint x="1360" y="390" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1325" y="372" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TeacherRejectToEnd_di" bpmnElement="Flow_TeacherRejectToEnd">
+        <di:waypoint x="1500" y="390" />
+        <di:waypoint x="1690" y="390" />
+        <di:waypoint x="1690" y="670" />
+        <di:waypoint x="1656" y="670" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="1250" y="580" />
+        <di:waypoint x="1280" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="1410" y="580" />
+        <di:waypoint x="1445" y="580" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AdminYes_di" bpmnElement="Flow_AdminYes">
+        <di:waypoint x="1495" y="580" />
+        <di:waypoint x="1620" y="580" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1540" y="562" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AdminNo_di" bpmnElement="Flow_AdminNo">
+        <di:waypoint x="1470" y="605" />
+        <di:waypoint x="1470" y="640" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1474" y="621" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AdminRejectToEnd_di" bpmnElement="Flow_AdminRejectToEnd">
+        <di:waypoint x="1530" y="670" />
+        <di:waypoint x="1620" y="670" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

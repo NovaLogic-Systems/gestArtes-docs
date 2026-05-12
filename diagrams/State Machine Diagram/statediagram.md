@@ -26,13 +26,3 @@ stateDiagram-v2
     No_Show --> [*]
     Finalized --> [*]
 ```
-
-> Status names align with `SessionStatus` rows seeded in
-> [`prisma/migrations/20260511_000001_session_status_seed/migration.sql`](../../../gestArtes-api/prisma/migrations/20260511_000001_session_status_seed/migration.sql).
-> `Scheduled` and `Cancelled_Rejected` are auto-created by the admin-session
-> use-cases when first needed
-> ([`approve-session.usecase.js`](../../../gestArtes-api/src/application/use-cases/admin-sessions/approve-session.usecase.js),
-> [`reject-session.usecase.js`](../../../gestArtes-api/src/application/use-cases/admin-sessions/reject-session.usecase.js)).
-> The 48h timeout transition is performed by
-> [`autoCancel.js`](../../../gestArtes-api/src/jobs/autoCancel.js), which sets
-> `StatusID = 5` (Cancelled).

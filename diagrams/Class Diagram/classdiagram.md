@@ -22,6 +22,11 @@ classDiagram
         +CreatedAt: DateTime
         +UpdatedAt?: DateTime
         +DeletedAt?: DateTime
+        +login()
+        +refresh()
+        +logout()
+        +logoutAll()
+        +me()
         +updateProfile()
         +changePassword()
         +switchRole()
@@ -48,6 +53,7 @@ classDiagram
         +BirthDate: Date
         +GuardianName?: String
         +GuardianPhone?: String
+        +getProfile()
         +getUpcomingSchedule()
         +getSessionHistory()
     }
@@ -125,6 +131,12 @@ classDiagram
         +ReviewedAt?: DateTime
         +ReviewNotes?: String
         +CancellationReason?: String
+        +getAvailableSlots()
+        +createSession()
+        +createBooking()
+        +confirmCompletion()
+        +cancelBooking()
+        +registerNoShow()
     }
 
     class SessionStatus {
@@ -166,6 +178,15 @@ classDiagram
         +StatusID: Int
         +ReviewedByUserID?: Int
         +ReviewedAt?: DateTime
+        +createJoinRequest()
+        +getTeacherPending()
+        +teacherApprove()
+        +teacherReject()
+        +getAdminPending()
+        +adminApprove()
+        +adminReject()
+        +getStudentRequests()
+        +cancelJoinRequest()
     }
 
     class CoachingJoinRequestStatus {
@@ -197,6 +218,13 @@ classDiagram
         +ReviewedByUserID?: Int
         +ReviewedAt?: DateTime
         +ReviewNotes?: String
+        +submitTeacherAvailability()
+        +listTeacherAvailability()
+        +listAdminPendingAvailability()
+        +approveAvailability()
+        +rejectAvailability()
+        +createTeacherException()
+        +cancelTeacherAvailability()
     }
 
     class TeacherAvailabilityStatus {
@@ -248,6 +276,9 @@ classDiagram
         +SessionID?: Int
         +IsRead: Boolean
         +CreatedAt: DateTime
+        +create()
+        +sendNotification()
+        +broadcastNotification()
         +getAllByUser()
         +getById()
         +markAsRead()
@@ -294,6 +325,11 @@ classDiagram
         +ApprovalStatus?: String
         +ApprovedAt?: DateTime
         +ApprovalNotes?: String
+        +createRental()
+        +getRentals()
+        +approveRental()
+        +verifyReturn()
+        +rejectReturn()
     }
 
     class PaymentMethod {
@@ -317,6 +353,12 @@ classDiagram
         +RejectionReason?: String
         +CreatedAt: DateTime
         +IsActive: Boolean
+        +createListing()
+        +getListings()
+        +getListingById()
+        +getMyListings()
+        +updateListing()
+        +deleteListing()
     }
 
     class MarketplaceItemCondition {
@@ -426,6 +468,10 @@ classDiagram
         +AdminNotes?: String
         +ArchivedAt?: DateTime
         +RegisteredByUserID: Int
+        +create()
+        +listPublicItems()
+        +claimItem()
+        +archiveItem()
     }
 
    

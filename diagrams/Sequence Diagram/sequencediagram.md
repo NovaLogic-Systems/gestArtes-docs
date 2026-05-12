@@ -7,10 +7,10 @@ sequenceDiagram
     participant AuthController as AuthController
     participant JwtService as JwtService
 
-    User->>Platform: openLoginPage()
+    User->>Platform: open login page
     activate Platform
-    Platform-->>User: renderLoginForm()
-    User->>Platform: submitCredentials(email, password)
+    Platform-->>User: render login form
+    User->>Platform: login(email, password)
     Platform->>AuthController: login(email, password)
     activate AuthController
     AuthController->>AuthController: findUserByEmail(email)
@@ -18,7 +18,7 @@ sequenceDiagram
     AuthController->>JwtService: issueAuthTokens(user)
     JwtService-->>AuthController: { accessToken, refreshToken }
     AuthController-->>Platform: { user, accessToken }
-    Platform-->>User: redirectToDashboard()
+    Platform-->>User: redirect to dashboard
     deactivate AuthController
     deactivate Platform
 ```
@@ -36,23 +36,23 @@ sequenceDiagram
     participant CoachingUseCases as CoachingUseCases
     participant NotificationController as NotificationController
 
-    Student->>Platform: selectModalityAndSchedule(modalityId, startTime, endTime, studioId)
+    Student->>Platform: select modality and schedule
     Platform->>CoachingController: getAvailableSlots(weekStart, modalityId)
     CoachingController->>CoachingService: getAvailableSlots(weekStart, modalityId)
     CoachingService-->>CoachingController: { slots }
     CoachingController-->>Platform: { slots }
-    Platform-->>Student: displayAvailableSlots()
+    Platform-->>Student: display available slots
 
-    Student->>Platform: createSession(payload)
-    Platform->>CoachingController: createSession(payload)
+    Student->>Platform: createBooking(payload)
+    Platform->>CoachingController: createBooking(payload)
     activate CoachingController
-    CoachingController->>CoachingUseCases: execute(payload)
+    CoachingController->>CoachingUseCases: createBookingRequest.execute(payload)
     CoachingUseCases-->>CoachingController: { session }
     CoachingController-->>Platform: { session }
     deactivate CoachingController
     Platform-->>Student: Session created (Pending Approval)
 
-    Student->>Platform: requestApproval()
+    Student->>Platform: booking request sent
     Platform->>NotificationController: broadcastNotification()
     NotificationController-->>Student: Notification sent to Management
 ```
@@ -89,8 +89,8 @@ sequenceDiagram
         Platform-->>Student: Completion confirmed
     end
 
-    Admin->>Platform: finalizeValidation(sessionId)
-    Platform->>AdminController: finalizeValidation(sessionId)
+    Admin->>Platform: finalizeSessionValidation(sessionId)
+    Platform->>AdminController: finalizeSessionValidation(sessionId)
     AdminController->>SessionService: finalizeSessionValidation(sessionId)
     SessionService-->>AdminController: { finalized: true }
     AdminController->>FinanceService: generateFromSession(sessionId)
@@ -163,30 +163,30 @@ sequenceDiagram
     participant CoachingController as CoachingController
     participant NotificationController as NotificationController
 
-    Student->>Platform: submitJoinRequest(sessionId)
-    Platform->>JoinRequestController: submitJoinRequest(sessionId)
+    Student->>Platform: createJoinRequest(sessionId)
+    Platform->>JoinRequestController: createJoinRequest(sessionId)
     JoinRequestController->>JoinRequestController: createJoinRequest(sessionId)
     JoinRequestController-->>Platform: { joinRequest }
     Platform-->>Student: Join request submitted
 
-    Teacher->>Platform: getTeacherPendingJoinRequests()
-    Platform->>JoinRequestController: getTeacherPendingJoinRequests()
+    Teacher->>Platform: getTeacherPending()
+    Platform->>JoinRequestController: getTeacherPending()
     JoinRequestController-->>Platform: { joinRequests }
     Platform-->>Teacher: Display pending join requests
 
     Teacher->>Platform: teacherApprove(joinRequestId)
-    Platform->>JoinRequestController: teacherApproveJoinRequest(joinRequestId)
+    Platform->>JoinRequestController: teacherApprove(joinRequestId)
     JoinRequestController->>JoinRequestController: teacherApprove(joinRequestId)
     JoinRequestController-->>Platform: { joinRequest }
     Platform-->>Teacher: Request approved by teacher
 
-    Admin->>Platform: getAdminPendingJoinRequests()
-    Platform->>JoinRequestController: getAdminPendingJoinRequests()
+    Admin->>Platform: getAdminPending()
+    Platform->>JoinRequestController: getAdminPending()
     JoinRequestController-->>Platform: { joinRequests }
     Platform-->>Admin: Display pending join requests
 
     Admin->>Platform: adminApprove(joinRequestId)
-    Platform->>JoinRequestController: adminApproveJoinRequest(joinRequestId)
+    Platform->>JoinRequestController: adminApprove(joinRequestId)
     JoinRequestController->>JoinRequestController: adminApprove(joinRequestId)
     JoinRequestController-->>Platform: { joinRequest }
     Platform-->>Admin: Request approved by admin
@@ -209,16 +209,16 @@ sequenceDiagram
     participant NotificationController as NotificationController
 
     Note over Platform: New academic year begins
-    Teacher->>Platform: submitAvailability(slots)
-    Platform->>AvailabilityController: submitAvailability(slots)
+    Teacher->>Platform: submitTeacherAvailability(slots)
+    Platform->>AvailabilityController: submitTeacherAvailability(slots)
     activate AvailabilityController
     AvailabilityController->>AvailabilityController: submitTeacherAvailability(teacherUserId, slots)
     AvailabilityController-->>Platform: { availability }
     deactivate AvailabilityController
     Platform-->>Teacher: Availability submitted (Pending Review)
 
-    Admin->>Platform: getAdminPendingAvailability()
-    Platform->>AvailabilityController: getAdminPendingAvailability()
+    Admin->>Platform: listAdminPendingAvailability()
+    Platform->>AvailabilityController: listAdminPendingAvailability()
     AvailabilityController-->>Platform: { availabilities }
     Platform-->>Admin: Display pending availabilities
 
@@ -502,8 +502,8 @@ sequenceDiagram
     participant JoinRequestController as JoinRequestController
     participant AdminController as AdminController
 
-    Student->>Platform: submitJoinRequest(sessionId)
-    Platform->>JoinRequestController: submitJoinRequest(sessionId)
+    Student->>Platform: createJoinRequest(sessionId)
+    Platform->>JoinRequestController: createJoinRequest(sessionId)
     JoinRequestController-->>Platform: { joinRequest }
     Platform-->>Student: Request submitted
 
@@ -518,13 +518,13 @@ sequenceDiagram
     TeacherController-->>Platform: { admissionRequest }
     Platform-->>Teacher: Request reviewed
 
-    Admin->>Platform: getAdminPendingJoinRequests()
-    Platform->>JoinRequestController: getAdminPendingJoinRequests()
+    Admin->>Platform: getAdminPending()
+    Platform->>JoinRequestController: getAdminPending()
     JoinRequestController-->>Platform: { joinRequests }
     Platform-->>Admin: Display pending join requests
 
     Admin->>Platform: adminApprove(joinRequestId)
-    Platform->>JoinRequestController: adminApproveJoinRequest(joinRequestId)
+    Platform->>JoinRequestController: adminApprove(joinRequestId)
     JoinRequestController->>JoinRequestController: adminApprove(joinRequestId)
     JoinRequestController-->>Platform: { joinRequest }
     Platform-->>Admin: Request approved
@@ -700,8 +700,8 @@ sequenceDiagram
     participant AdminController as AdminController
     participant AdminSessionUseCases as AdminSessionUseCases
 
-    Admin->>Platform: getPendingApprovalSessions()
-    Platform->>AdminController: getPendingApprovalSessions()
+    Admin->>Platform: listPendingApproval()
+    Platform->>AdminController: listPendingApproval()
     AdminController-->>Platform: { sessions }
     Platform-->>Admin: Display pending sessions
 

@@ -26,6 +26,15 @@ entity User {
     CreatedAt : DateTime
     UpdatedAt : DateTime
     DeletedAt : DateTime
+    --
+    login()
+    refresh()
+    logout()
+    logoutAll()
+    me()
+    updateProfile()
+    changePassword()
+    switchRole()
 }
 
 entity Role {
@@ -59,6 +68,10 @@ entity StudentAccount {
     GuardianPhone : String
     CreatedAt : DateTime
     UpdatedAt : DateTime
+    --
+    getProfile()
+    getUpcomingSchedule()
+    getSessionHistory()
 }
 
 '========================
@@ -160,6 +173,13 @@ entity CoachingSession {
     ReviewedAt : DateTime
     ReviewNotes : String
     CancellationReason : String
+    --
+    getAvailableSlots()
+    createSession()
+    createBooking()
+    confirmCompletion()
+    cancelBooking()
+    registerNoShow()
 }
 
 entity AttendanceStatus {
@@ -207,6 +227,16 @@ entity CoachingJoinRequest {
     StatusID : Int (FK)
     ReviewedByUserID : Int (FK)
     ReviewedAt : DateTime
+    --
+    createJoinRequest()
+    getTeacherPending()
+    teacherApprove()
+    teacherReject()
+    getAdminPending()
+    adminApprove()
+    adminReject()
+    getStudentRequests()
+    cancelJoinRequest()
 }
 
 '========================
@@ -246,6 +276,14 @@ entity TeacherAvailability {
     ReviewedByUserID : Int (FK)
     ReviewedAt : DateTime
     ReviewNotes : String
+    --
+    submitTeacherAvailability()
+    listTeacherAvailability()
+    listAdminPendingAvailability()
+    approveAvailability()
+    rejectAvailability()
+    createTeacherException()
+    cancelTeacherAvailability()
 }
 
 entity TeacherAvailabilityRecurring {
@@ -307,6 +345,14 @@ entity Notification {
     SessionID : Int (FK)
     IsRead : Boolean
     CreatedAt : DateTime
+    --
+    create()
+    sendNotification()
+    broadcastNotification()
+    getAllByUser()
+    getById()
+    markAsRead()
+    remove()
 }
 
 '========================
@@ -365,6 +411,12 @@ entity InventoryTransaction {
     ApprovalNotes : String
     CreatedAt : DateTime
     UpdatedAt : DateTime
+    --
+    createRental()
+    getRentals()
+    approveRental()
+    verifyReturn()
+    rejectReturn()
 }
 
 '========================
@@ -398,6 +450,13 @@ entity MarketplaceItem {
     CreatedAt : DateTime
     UpdatedAt : DateTime
     IsActive : Boolean
+    --
+    createListing()
+    getListings()
+    getListingById()
+    getMyListings()
+    updateListing()
+    deleteListing()
 }
 
 entity MarketplaceTransaction {
@@ -523,6 +582,11 @@ entity LostAndFoundItem {
     ArchivedAt : DateTime
     CreatedAt : DateTime
     UpdatedAt : DateTime
+    --
+    create()
+    listPublicItems()
+    claimItem()
+    archiveItem()
 }
 
 '========================

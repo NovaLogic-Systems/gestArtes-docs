@@ -1,91 +1,203 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_5" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.12.0">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_5" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.13.2">
   <bpmn:collaboration id="Collaboration_5">
     <bpmn:participant id="Participant_5" name="Community Marketplace - Student to Student Exchange" processRef="Process_5" />
   </bpmn:collaboration>
   <bpmn:process id="Process_5" isExecutable="false">
     <bpmn:laneSet id="LaneSet_5">
-      <bpmn:lane id="Lane_Buyer" name="Interested">
-        <bpmn:flowNodeRef>Start_Marketplace</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_InitiateContact</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_PerformPayment</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>End_Success</bpmn:flowNodeRef>
-      </bpmn:lane>
-      <bpmn:lane id="Lane_Seller" name="Item Owner">
+      <bpmn:lane id="Lane_Seller" name="Seller (Item Owner)">
+        <bpmn:flowNodeRef>StartEvent_HasItem</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenMyListings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FillListingForm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PublishListing</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RespondToBuyer</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Task_NegotiateTerms</bpmn:flowNodeRef>
       </bpmn:lane>
+      <bpmn:lane id="Lane_Buyer" name="Buyer (Interested)">
+        <bpmn:flowNodeRef>Task_BrowseMarketplace</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FilterListings</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenListingDetail</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ContactSeller</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_BuyerInterested</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AbandonInquiry</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CompleteTransaction</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_NoDeal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Transaction</bpmn:flowNodeRef>
+      </bpmn:lane>
     </bpmn:laneSet>
-    <bpmn:startEvent id="Start_Marketplace" name="Interest in Marketplace Item">
+    <bpmn:startEvent id="StartEvent_HasItem" name="Has item to sell">
       <bpmn:outgoing>Flow_M1</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:userTask id="Task_InitiateContact" name="Send Interest Request">
+    <bpmn:userTask id="Task_OpenMyListings" name="Open My Listings Page">
       <bpmn:incoming>Flow_M1</bpmn:incoming>
       <bpmn:outgoing>Flow_M2</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_NegotiateTerms" name="Confirm Terms of Exchange">
+    <bpmn:userTask id="Task_FillListingForm" name="Fill Listing Form (title, description, price, category, photo)">
       <bpmn:incoming>Flow_M2</bpmn:incoming>
       <bpmn:outgoing>Flow_M3</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_PerformPayment" name="Pay via External Gateway (or Cash)">
+    <bpmn:userTask id="Task_PublishListing" name="Publish Listing">
       <bpmn:incoming>Flow_M3</bpmn:incoming>
       <bpmn:outgoing>Flow_M4</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:sequenceFlow id="Flow_M1" sourceRef="Start_Marketplace" targetRef="Task_InitiateContact" />
-    <bpmn:sequenceFlow id="Flow_M2" sourceRef="Task_InitiateContact" targetRef="Task_NegotiateTerms" />
-    <bpmn:sequenceFlow id="Flow_M3" sourceRef="Task_NegotiateTerms" targetRef="Task_PerformPayment" />
-    <bpmn:sequenceFlow id="Flow_M4" sourceRef="Task_PerformPayment" targetRef="End_Success" />
-    <bpmn:endEvent id="End_Success" name="Transaction Completed">
+    <bpmn:userTask id="Task_BrowseMarketplace" name="Browse Marketplace">
       <bpmn:incoming>Flow_M4</bpmn:incoming>
+      <bpmn:outgoing>Flow_M5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_FilterListings" name="Filter / Search Listings">
+      <bpmn:incoming>Flow_M5</bpmn:incoming>
+      <bpmn:outgoing>Flow_M6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_OpenListingDetail" name="Open Listing Detail">
+      <bpmn:incoming>Flow_M6</bpmn:incoming>
+      <bpmn:outgoing>Flow_M7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ContactSeller" name="Contact Seller (Email / WhatsApp)">
+      <bpmn:incoming>Flow_M7</bpmn:incoming>
+      <bpmn:outgoing>Flow_M8Validate</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_BuyerInterested" name="Buyer still interested?">
+      <bpmn:incoming>Flow_M8Validate</bpmn:incoming>
+      <bpmn:outgoing>Flow_M8</bpmn:outgoing>
+      <bpmn:outgoing>Flow_M8NoDeal</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_AbandonInquiry" name="Abandon Inquiry">
+      <bpmn:incoming>Flow_M8NoDeal</bpmn:incoming>
+      <bpmn:outgoing>Flow_M8NoDealEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_RespondToBuyer" name="Respond to Buyer">
+      <bpmn:incoming>Flow_M8</bpmn:incoming>
+      <bpmn:outgoing>Flow_M9</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_NegotiateTerms" name="Negotiate Terms of Exchange">
+      <bpmn:incoming>Flow_M9</bpmn:incoming>
+      <bpmn:outgoing>Flow_M10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_CompleteTransaction" name="Complete External Transaction (Cash / External Gateway)">
+      <bpmn:incoming>Flow_M10</bpmn:incoming>
+      <bpmn:outgoing>Flow_M11</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Transaction" name="Transaction completed">
+      <bpmn:incoming>Flow_M11</bpmn:incoming>
     </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_NoDeal" name="No deal / inquiry abandoned">
+      <bpmn:incoming>Flow_M8NoDealEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_M1" sourceRef="StartEvent_HasItem" targetRef="Task_OpenMyListings" />
+    <bpmn:sequenceFlow id="Flow_M2" sourceRef="Task_OpenMyListings" targetRef="Task_FillListingForm" />
+    <bpmn:sequenceFlow id="Flow_M3" sourceRef="Task_FillListingForm" targetRef="Task_PublishListing" />
+    <bpmn:sequenceFlow id="Flow_M4" sourceRef="Task_PublishListing" targetRef="Task_BrowseMarketplace" />
+    <bpmn:sequenceFlow id="Flow_M5" sourceRef="Task_BrowseMarketplace" targetRef="Task_FilterListings" />
+    <bpmn:sequenceFlow id="Flow_M6" sourceRef="Task_FilterListings" targetRef="Task_OpenListingDetail" />
+    <bpmn:sequenceFlow id="Flow_M7" sourceRef="Task_OpenListingDetail" targetRef="Task_ContactSeller" />
+    <bpmn:sequenceFlow id="Flow_M8Validate" sourceRef="Task_ContactSeller" targetRef="Gateway_BuyerInterested" />
+    <bpmn:sequenceFlow id="Flow_M8" name="Yes" sourceRef="Gateway_BuyerInterested" targetRef="Task_RespondToBuyer" />
+    <bpmn:sequenceFlow id="Flow_M8NoDeal" name="No" sourceRef="Gateway_BuyerInterested" targetRef="Task_AbandonInquiry" />
+    <bpmn:sequenceFlow id="Flow_M8NoDealEnd" sourceRef="Task_AbandonInquiry" targetRef="EndEvent_NoDeal" />
+    <bpmn:sequenceFlow id="Flow_M9" sourceRef="Task_RespondToBuyer" targetRef="Task_NegotiateTerms" />
+    <bpmn:sequenceFlow id="Flow_M10" sourceRef="Task_NegotiateTerms" targetRef="Task_CompleteTransaction" />
+    <bpmn:sequenceFlow id="Flow_M11" sourceRef="Task_CompleteTransaction" targetRef="EndEvent_Transaction" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_5">
     <bpmndi:BPMNPlane id="BPMNPlane_5" bpmnElement="Collaboration_5">
       <bpmndi:BPMNShape id="Participant_5_di" bpmnElement="Participant_5" isHorizontal="true">
-        <dc:Bounds x="120" y="80" width="700" height="300" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller" isHorizontal="true">
-        <dc:Bounds x="150" y="230" width="670" height="150" />
-        <bpmndi:BPMNLabel />
+        <dc:Bounds x="120" y="80" width="1380" height="380" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_Buyer_di" bpmnElement="Lane_Buyer" isHorizontal="true">
-        <dc:Bounds x="150" y="80" width="670" height="150" />
-        <bpmndi:BPMNLabel />
+        <dc:Bounds x="150" y="270" width="1350" height="190" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Start_Marketplace_di" bpmnElement="Start_Marketplace">
-        <dc:Bounds x="200" y="130" width="36" height="36" />
+      <bpmndi:BPMNShape id="Lane_Seller_di" bpmnElement="Lane_Seller" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1350" height="190" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_InitiateContact_di" bpmnElement="Task_InitiateContact">
-        <dc:Bounds x="280" y="108" width="100" height="80" />
+      <bpmndi:BPMNShape id="StartEvent_HasItem_di" bpmnElement="StartEvent_HasItem">
+        <dc:Bounds x="200" y="152" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="184" y="195" width="69" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenMyListings_di" bpmnElement="Task_OpenMyListings">
+        <dc:Bounds x="280" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FillListingForm_di" bpmnElement="Task_FillListingForm">
+        <dc:Bounds x="420" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PublishListing_di" bpmnElement="Task_PublishListing">
+        <dc:Bounds x="560" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_BrowseMarketplace_di" bpmnElement="Task_BrowseMarketplace">
+        <dc:Bounds x="280" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FilterListings_di" bpmnElement="Task_FilterListings">
+        <dc:Bounds x="420" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenListingDetail_di" bpmnElement="Task_OpenListingDetail">
+        <dc:Bounds x="560" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ContactSeller_di" bpmnElement="Task_ContactSeller">
+        <dc:Bounds x="700" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RespondToBuyer_di" bpmnElement="Task_RespondToBuyer">
+        <dc:Bounds x="840" y="130" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Task_NegotiateTerms_di" bpmnElement="Task_NegotiateTerms">
-        <dc:Bounds x="280" y="260" width="100" height="80" />
+        <dc:Bounds x="980" y="130" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_PerformPayment_di" bpmnElement="Task_PerformPayment">
-        <dc:Bounds x="420" y="108" width="100" height="80" />
-        <bpmndi:BPMNLabel />
+      <bpmndi:BPMNShape id="Task_CompleteTransaction_di" bpmnElement="Task_CompleteTransaction">
+        <dc:Bounds x="1120" y="320" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="End_Success_di" bpmnElement="End_Success">
-        <dc:Bounds x="692" y="130" width="36" height="36" />
+      <bpmndi:BPMNShape id="EndEvent_Transaction_di" bpmnElement="EndEvent_Transaction">
+        <dc:Bounds x="1290" y="342" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="679" y="92.5" width="61" height="27" />
+          <dc:Bounds x="1268" y="385" width="80" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_M1_di" bpmnElement="Flow_M1">
-        <di:waypoint x="236" y="148" />
-        <di:waypoint x="280" y="148" />
+        <di:waypoint x="236" y="170" />
+        <di:waypoint x="280" y="170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_M2_di" bpmnElement="Flow_M2">
-        <di:waypoint x="330" y="188" />
-        <di:waypoint x="330" y="260" />
+        <di:waypoint x="380" y="170" />
+        <di:waypoint x="420" y="170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_M3_di" bpmnElement="Flow_M3">
-        <di:waypoint x="380" y="300" />
-        <di:waypoint x="470" y="300" />
-        <di:waypoint x="470" y="188" />
+        <di:waypoint x="520" y="170" />
+        <di:waypoint x="560" y="170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_M4_di" bpmnElement="Flow_M4">
-        <di:waypoint x="520" y="148" />
-        <di:waypoint x="692" y="148" />
+        <di:waypoint x="610" y="210" />
+        <di:waypoint x="610" y="290" />
+        <di:waypoint x="330" y="290" />
+        <di:waypoint x="330" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M5_di" bpmnElement="Flow_M5">
+        <di:waypoint x="380" y="360" />
+        <di:waypoint x="420" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M6_di" bpmnElement="Flow_M6">
+        <di:waypoint x="520" y="360" />
+        <di:waypoint x="560" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M7_di" bpmnElement="Flow_M7">
+        <di:waypoint x="660" y="360" />
+        <di:waypoint x="700" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M8_di" bpmnElement="Flow_M8">
+        <di:waypoint x="800" y="360" />
+        <di:waypoint x="890" y="360" />
+        <di:waypoint x="890" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M9_di" bpmnElement="Flow_M9">
+        <di:waypoint x="940" y="170" />
+        <di:waypoint x="980" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M10_di" bpmnElement="Flow_M10">
+        <di:waypoint x="1080" y="170" />
+        <di:waypoint x="1170" y="170" />
+        <di:waypoint x="1170" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M11_di" bpmnElement="Flow_M11">
+        <di:waypoint x="1220" y="360" />
+        <di:waypoint x="1290" y="360" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

@@ -1,74 +1,211 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.12.0">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.13.2">
   <bpmn:collaboration id="Collaboration_4">
-    <bpmn:participant id="Participant_4" name="Entartes School - Availability Setup" processRef="Process_4" />
+    <bpmn:participant id="Participant_4" name="Entartes School - Teacher Availability Setup" processRef="Process_4" />
   </bpmn:collaboration>
   <bpmn:process id="Process_4" isExecutable="false">
     <bpmn:laneSet id="LaneSet_4">
       <bpmn:lane id="Lane_Teacher" name="Teacher">
         <bpmn:flowNodeRef>StartEvent_Period</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_ProposeSlots</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenSchedulePage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SelectMode</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SelectAcademicYear</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SelectSlots</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AvailabilityReady</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitAvailability</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ShowSlotsError</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_SlotsError</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_Admin" name="Management">
-        <bpmn:flowNodeRef>Task_ReviewMap</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>EndEvent_Visible</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenValidationsQueue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReviewAvailability</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Published</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RejectAvailability</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AvailabilityDecision</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
-    <bpmn:startEvent id="StartEvent_Period" name="New Academic Year Starts">
+    <bpmn:startEvent id="StartEvent_Period" name="New academic period">
       <bpmn:outgoing>Flow_A1</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:userTask id="Task_ProposeSlots" name="Submit Weekly Availability Slots">
+    <bpmn:userTask id="Task_OpenSchedulePage" name="Open Schedule Submission Page">
       <bpmn:incoming>Flow_A1</bpmn:incoming>
       <bpmn:outgoing>Flow_A2</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_ReviewMap" name="Audit and Validate Global Map">
+    <bpmn:userTask id="Task_SelectMode" name="Select Availability Mode (Weekly / Punctual)">
       <bpmn:incoming>Flow_A2</bpmn:incoming>
       <bpmn:outgoing>Flow_A3</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:endEvent id="EndEvent_Visible" name="Vacancy Published for Parents">
+    <bpmn:userTask id="Task_SelectAcademicYear" name="Select Academic Year">
       <bpmn:incoming>Flow_A3</bpmn:incoming>
+      <bpmn:outgoing>Flow_A4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SelectSlots" name="Click Slots on Calendar">
+      <bpmn:incoming>Flow_A4</bpmn:incoming>
+      <bpmn:outgoing>Flow_A5Validate</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_AvailabilityReady" name="Slots complete and valid?">
+      <bpmn:incoming>Flow_A5Validate</bpmn:incoming>
+      <bpmn:outgoing>Flow_A5</bpmn:outgoing>
+      <bpmn:outgoing>Flow_A5Invalid</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_ShowSlotsError" name="Show validation error and adjust slots">
+      <bpmn:incoming>Flow_A5Invalid</bpmn:incoming>
+      <bpmn:outgoing>Flow_SlotsErrorEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SubmitAvailability" name="Submit Availability">
+      <bpmn:incoming>Flow_A5</bpmn:incoming>
+      <bpmn:outgoing>Flow_A6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_A1" sourceRef="StartEvent_Period" targetRef="Task_OpenSchedulePage" />
+    <bpmn:sequenceFlow id="Flow_A2" sourceRef="Task_OpenSchedulePage" targetRef="Task_SelectMode" />
+    <bpmn:sequenceFlow id="Flow_A3" sourceRef="Task_SelectMode" targetRef="Task_SelectAcademicYear" />
+    <bpmn:sequenceFlow id="Flow_A4" sourceRef="Task_SelectAcademicYear" targetRef="Task_SelectSlots" />
+    <bpmn:sequenceFlow id="Flow_A5Validate" sourceRef="Task_SelectSlots" targetRef="Gateway_AvailabilityReady" />
+    <bpmn:sequenceFlow id="Flow_A5" name="Yes" sourceRef="Gateway_AvailabilityReady" targetRef="Task_SubmitAvailability" />
+    <bpmn:sequenceFlow id="Flow_A5Invalid" name="No" sourceRef="Gateway_AvailabilityReady" targetRef="Task_ShowSlotsError" />
+    <bpmn:sequenceFlow id="Flow_SlotsErrorEnd" sourceRef="Task_ShowSlotsError" targetRef="EndEvent_SlotsError" />
+    <bpmn:sequenceFlow id="Flow_A6" sourceRef="Task_SubmitAvailability" targetRef="Task_OpenValidationsQueue" />
+    <bpmn:sequenceFlow id="Flow_A7" sourceRef="Task_OpenValidationsQueue" targetRef="Task_ReviewAvailability" />
+    <bpmn:sequenceFlow id="Flow_A8" sourceRef="Task_ReviewAvailability" targetRef="Gateway_AvailabilityDecision" />
+    <bpmn:sequenceFlow id="Flow_Approve" name="Yes" sourceRef="Gateway_AvailabilityDecision" targetRef="EndEvent_Published" />
+    <bpmn:sequenceFlow id="Flow_Reject" name="No" sourceRef="Gateway_AvailabilityDecision" targetRef="Task_RejectAvailability" />
+    <bpmn:sequenceFlow id="Flow_RejectEnd" sourceRef="Task_RejectAvailability" targetRef="EndEvent_Rejected" />
+    <bpmn:userTask id="Task_OpenValidationsQueue" name="Open Validations Queue">
+      <bpmn:incoming>Flow_A6</bpmn:incoming>
+      <bpmn:outgoing>Flow_A7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ReviewAvailability" name="Review Availability Submission">
+      <bpmn:incoming>Flow_A7</bpmn:incoming>
+      <bpmn:outgoing>Flow_A8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Published" name="Availability published">
+      <bpmn:incoming>Flow_Approve</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_A1" sourceRef="StartEvent_Period" targetRef="Task_ProposeSlots" />
-    <bpmn:sequenceFlow id="Flow_A2" sourceRef="Task_ProposeSlots" targetRef="Task_ReviewMap" />
-    <bpmn:sequenceFlow id="Flow_A3" sourceRef="Task_ReviewMap" targetRef="EndEvent_Visible" />
+    <bpmn:endEvent id="EndEvent_Rejected" name="Availability rejected">
+      <bpmn:incoming>Flow_RejectEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_SlotsError" name="Availability not submitted">
+      <bpmn:incoming>Flow_SlotsErrorEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_RejectAvailability" name="Reject Availability with Notes">
+      <bpmn:incoming>Flow_Reject</bpmn:incoming>
+      <bpmn:outgoing>Flow_RejectEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_AvailabilityDecision" name="Approve?">
+      <bpmn:incoming>Flow_A8</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approve</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_4">
     <bpmndi:BPMNPlane id="BPMNPlane_4" bpmnElement="Collaboration_4">
       <bpmndi:BPMNShape id="Participant_4_di" bpmnElement="Participant_4" isHorizontal="true">
-        <dc:Bounds x="120" y="80" width="500" height="300" />
+        <dc:Bounds x="120" y="80" width="1300" height="420" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_Admin_di" bpmnElement="Lane_Admin" isHorizontal="true">
-        <dc:Bounds x="150" y="230" width="470" height="150" />
+        <dc:Bounds x="150" y="260" width="1270" height="240" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_Teacher_di" bpmnElement="Lane_Teacher" isHorizontal="true">
-        <dc:Bounds x="150" y="80" width="470" height="150" />
+        <dc:Bounds x="150" y="80" width="1270" height="180" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="StartEvent_Period_di" bpmnElement="StartEvent_Period">
-        <dc:Bounds x="200" y="130" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_ProposeSlots_di" bpmnElement="Task_ProposeSlots">
-        <dc:Bounds x="280" y="108" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_ReviewMap_di" bpmnElement="Task_ReviewMap">
-        <dc:Bounds x="280" y="260" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_Visible_di" bpmnElement="EndEvent_Visible">
-        <dc:Bounds x="430" y="282" width="36" height="36" />
+        <dc:Bounds x="200" y="142" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="415" y="318" width="68" height="40" />
+          <dc:Bounds x="184" y="185" width="69" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenSchedulePage_di" bpmnElement="Task_OpenSchedulePage">
+        <dc:Bounds x="280" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SelectMode_di" bpmnElement="Task_SelectMode">
+        <dc:Bounds x="420" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SelectAcademicYear_di" bpmnElement="Task_SelectAcademicYear">
+        <dc:Bounds x="560" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SelectSlots_di" bpmnElement="Task_SelectSlots">
+        <dc:Bounds x="700" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SubmitAvailability_di" bpmnElement="Task_SubmitAvailability">
+        <dc:Bounds x="840" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenValidationsQueue_di" bpmnElement="Task_OpenValidationsQueue">
+        <dc:Bounds x="840" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReviewAvailability_di" bpmnElement="Task_ReviewAvailability">
+        <dc:Bounds x="980" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Published_di" bpmnElement="EndEvent_Published">
+        <dc:Bounds x="1262" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1254" y="355" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Rejected_di" bpmnElement="EndEvent_Rejected">
+        <dc:Bounds x="1262" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1255" y="465" width="55" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RejectAvailability_di" bpmnElement="Task_RejectAvailability">
+        <dc:Bounds x="1110" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AvailabilityDecision_di" bpmnElement="Gateway_AvailabilityDecision" isMarkerVisible="true">
+        <dc:Bounds x="1135" y="305" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1137" y="275" width="48" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_A1_di" bpmnElement="Flow_A1">
-        <di:waypoint x="236" y="148" />
-        <di:waypoint x="280" y="148" />
+        <di:waypoint x="236" y="160" />
+        <di:waypoint x="280" y="160" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_A2_di" bpmnElement="Flow_A2">
-        <di:waypoint x="330" y="188" />
-        <di:waypoint x="330" y="260" />
+        <di:waypoint x="380" y="160" />
+        <di:waypoint x="420" y="160" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_A3_di" bpmnElement="Flow_A3">
-        <di:waypoint x="380" y="300" />
-        <di:waypoint x="430" y="300" />
+        <di:waypoint x="520" y="160" />
+        <di:waypoint x="560" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A4_di" bpmnElement="Flow_A4">
+        <di:waypoint x="660" y="160" />
+        <di:waypoint x="700" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A5_di" bpmnElement="Flow_A5">
+        <di:waypoint x="800" y="160" />
+        <di:waypoint x="840" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A6_di" bpmnElement="Flow_A6">
+        <di:waypoint x="890" y="200" />
+        <di:waypoint x="890" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A7_di" bpmnElement="Flow_A7">
+        <di:waypoint x="940" y="330" />
+        <di:waypoint x="980" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A8_di" bpmnElement="Flow_A8">
+        <di:waypoint x="1080" y="330" />
+        <di:waypoint x="1135" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Approve_di" bpmnElement="Flow_Approve">
+        <di:waypoint x="1185" y="330" />
+        <di:waypoint x="1262" y="330" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1206" y="312" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reject_di" bpmnElement="Flow_Reject">
+        <di:waypoint x="1160" y="355" />
+        <di:waypoint x="1160" y="400" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1168" y="366" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RejectEnd_di" bpmnElement="Flow_RejectEnd">
+        <di:waypoint x="1210" y="440" />
+        <di:waypoint x="1262" y="440" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

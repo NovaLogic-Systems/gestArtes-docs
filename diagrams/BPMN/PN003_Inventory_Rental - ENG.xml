@@ -1,93 +1,170 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_3" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.12.0">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_3" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.13.2">
   <bpmn:collaboration id="Collaboration_3">
-    <bpmn:participant id="Participant_3" name="Digital Inventory - Peer-to-Peer Rental" processRef="Process_3" />
+    <bpmn:participant id="Participant_3" name="School Inventory - Item Rental" processRef="Process_3" />
   </bpmn:collaboration>
   <bpmn:process id="Process_3" isExecutable="false">
     <bpmn:laneSet id="LaneSet_3">
-      <bpmn:lane id="Lane_Requester" name="Interested Party">
-        <bpmn:flowNodeRef>Task_ManualPayment</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>EndEvent_Received</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_RequestItem</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>StartEvent_Interest</bpmn:flowNodeRef>
+      <bpmn:lane id="Lane_Requester" name="Student (Interested Party)">
+        <bpmn:flowNodeRef>StartEvent_NeedItem</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_BrowseCatalog</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CheckRentalStatus</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenItemDetails</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ClickAlugar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FillRentalForm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitRentalRequest</bpmn:flowNodeRef>
       </bpmn:lane>
-      <bpmn:lane id="Lane_Owner" name="Item Owner (School)">
-        <bpmn:flowNodeRef>Task_ApproveRequest</bpmn:flowNodeRef>
+      <bpmn:lane id="Lane_Owner" name="Management (School)">
+        <bpmn:flowNodeRef>Task_VerifyReturn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Completed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenAdminRentals</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ApproveRental</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
-    <bpmn:userTask id="Task_ApproveRequest" name="Analyze Request and Define Terms">
-      <bpmn:incoming>Flow_I2</bpmn:incoming>
-      <bpmn:outgoing>Flow_I3</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Task_ManualPayment" name="Execute Payment via External Gateway or Cash">
-      <bpmn:incoming>Flow_I3</bpmn:incoming>
-      <bpmn:outgoing>Flow_I4</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:endEvent id="EndEvent_Received" name="Item Acquired">
-      <bpmn:incoming>Flow_I4</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_I1" sourceRef="StartEvent_Interest" targetRef="Task_RequestItem" />
-    <bpmn:sequenceFlow id="Flow_I2" sourceRef="Task_RequestItem" targetRef="Task_ApproveRequest" />
-    <bpmn:sequenceFlow id="Flow_I3" sourceRef="Task_ApproveRequest" targetRef="Task_ManualPayment" />
-    <bpmn:sequenceFlow id="Flow_I4" sourceRef="Task_ManualPayment" targetRef="EndEvent_Received" />
-    <bpmn:userTask id="Task_RequestItem" name="Express Interest in Article">
+    <bpmn:startEvent id="StartEvent_NeedItem" name="Needs costume / accessory">
+      <bpmn:outgoing>Flow_I1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_BrowseCatalog" name="Browse Inventory Catalog">
       <bpmn:incoming>Flow_I1</bpmn:incoming>
       <bpmn:outgoing>Flow_I2</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:startEvent id="StartEvent_Interest" name="Needs Costume/Accessory">
-      <bpmn:outgoing>Flow_I1</bpmn:outgoing>
-    </bpmn:startEvent>
+    <bpmn:userTask id="Task_CheckRentalStatus" name="Check Rental Requests Status">
+      <bpmn:incoming>Flow_I9</bpmn:incoming>
+      <bpmn:outgoing>Flow_I10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_VerifyReturn" name="Verify Item Return">
+      <bpmn:incoming>Flow_I10</bpmn:incoming>
+      <bpmn:outgoing>Flow_I11</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Completed" name="Rental completed">
+      <bpmn:incoming>Flow_I11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_I1" sourceRef="StartEvent_NeedItem" targetRef="Task_BrowseCatalog" />
+    <bpmn:sequenceFlow id="Flow_I2" sourceRef="Task_BrowseCatalog" targetRef="Task_OpenItemDetails" />
+    <bpmn:sequenceFlow id="Flow_I4" sourceRef="Task_OpenItemDetails" targetRef="Task_ClickAlugar" />
+    <bpmn:sequenceFlow id="Flow_I5" sourceRef="Task_ClickAlugar" targetRef="Task_FillRentalForm" />
+    <bpmn:sequenceFlow id="Flow_I6" sourceRef="Task_FillRentalForm" targetRef="Task_SubmitRentalRequest" />
+    <bpmn:sequenceFlow id="Flow_I7" sourceRef="Task_SubmitRentalRequest" targetRef="Task_OpenAdminRentals" />
+    <bpmn:sequenceFlow id="Flow_I8" sourceRef="Task_OpenAdminRentals" targetRef="Task_ApproveRental" />
+    <bpmn:sequenceFlow id="Flow_I9" sourceRef="Task_ApproveRental" targetRef="Task_CheckRentalStatus" />
+    <bpmn:sequenceFlow id="Flow_I10" sourceRef="Task_CheckRentalStatus" targetRef="Task_VerifyReturn" />
+    <bpmn:sequenceFlow id="Flow_I11" sourceRef="Task_VerifyReturn" targetRef="EndEvent_Completed" />
+    <bpmn:userTask id="Task_OpenItemDetails" name="Open Item Details">
+      <bpmn:incoming>Flow_I2</bpmn:incoming>
+      <bpmn:outgoing>Flow_I4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ClickAlugar" name="Click Rent (Alugar)">
+      <bpmn:incoming>Flow_I4</bpmn:incoming>
+      <bpmn:outgoing>Flow_I5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_FillRentalForm" name="Fill Rental Form (start/end date, payment method)">
+      <bpmn:incoming>Flow_I5</bpmn:incoming>
+      <bpmn:outgoing>Flow_I6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SubmitRentalRequest" name="Submit Rental Request">
+      <bpmn:incoming>Flow_I6</bpmn:incoming>
+      <bpmn:outgoing>Flow_I7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_OpenAdminRentals" name="Open Admin Inventory Rentals">
+      <bpmn:incoming>Flow_I7</bpmn:incoming>
+      <bpmn:outgoing>Flow_I8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ApproveRental" name="Approve Rental Request">
+      <bpmn:incoming>Flow_I8</bpmn:incoming>
+      <bpmn:outgoing>Flow_I9</bpmn:outgoing>
+    </bpmn:userTask>
   </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_3">
+  <bpmndi:BPMNDiagram id="BPMNDiagram_3">
+    <bpmndi:BPMNPlane id="BPMNPlane_3" bpmnElement="Collaboration_3">
       <bpmndi:BPMNShape id="Participant_3_di" bpmnElement="Participant_3" isHorizontal="true">
-        <dc:Bounds x="120" y="80" width="960" height="300" />
+        <dc:Bounds x="120" y="80" width="1400" height="380" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_Owner_di" bpmnElement="Lane_Owner" isHorizontal="true">
-        <dc:Bounds x="150" y="230" width="930" height="150" />
-        <bpmndi:BPMNLabel />
+        <dc:Bounds x="150" y="270" width="1370" height="190" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_Requester_di" bpmnElement="Lane_Requester" isHorizontal="true">
-        <dc:Bounds x="150" y="80" width="930" height="150" />
-        <bpmndi:BPMNLabel />
+        <dc:Bounds x="150" y="80" width="1370" height="190" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_ApproveRequest_di" bpmnElement="Task_ApproveRequest">
-        <dc:Bounds x="420" y="260" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_ManualPayment_di" bpmnElement="Task_ManualPayment">
-        <dc:Bounds x="560" y="108" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_Received_di" bpmnElement="EndEvent_Received">
-        <dc:Bounds x="980" y="130" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_RequestItem_di" bpmnElement="Task_RequestItem">
-        <dc:Bounds x="300" y="108" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="StartEvent_Interest_di" bpmnElement="StartEvent_Interest">
-        <dc:Bounds x="212" y="130" width="36" height="36" />
+      <bpmndi:BPMNShape id="StartEvent_NeedItem_di" bpmnElement="StartEvent_NeedItem">
+        <dc:Bounds x="200" y="152" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="185" y="166" width="89" height="40" />
+          <dc:Bounds x="178" y="195" width="80" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_BrowseCatalog_di" bpmnElement="Task_BrowseCatalog">
+        <dc:Bounds x="280" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CheckRentalStatus_di" bpmnElement="Task_CheckRentalStatus">
+        <dc:Bounds x="1260" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_VerifyReturn_di" bpmnElement="Task_VerifyReturn">
+        <dc:Bounds x="1260" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Completed_di" bpmnElement="EndEvent_Completed">
+        <dc:Bounds x="1410" y="342" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1392" y="385" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenItemDetails_di" bpmnElement="Task_OpenItemDetails">
+        <dc:Bounds x="450" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ClickAlugar_di" bpmnElement="Task_ClickAlugar">
+        <dc:Bounds x="620" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FillRentalForm_di" bpmnElement="Task_FillRentalForm">
+        <dc:Bounds x="790" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SubmitRentalRequest_di" bpmnElement="Task_SubmitRentalRequest">
+        <dc:Bounds x="960" y="130" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenAdminRentals_di" bpmnElement="Task_OpenAdminRentals">
+        <dc:Bounds x="960" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ApproveRental_di" bpmnElement="Task_ApproveRental">
+        <dc:Bounds x="1110" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_I1_di" bpmnElement="Flow_I1">
-        <di:waypoint x="248" y="148" />
-        <di:waypoint x="300" y="148" />
+        <di:waypoint x="236" y="170" />
+        <di:waypoint x="280" y="170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_I2_di" bpmnElement="Flow_I2">
-        <di:waypoint x="350" y="188" />
-        <di:waypoint x="350" y="300" />
-        <di:waypoint x="420" y="300" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_I3_di" bpmnElement="Flow_I3">
-        <di:waypoint x="520" y="300" />
-        <di:waypoint x="540" y="300" />
-        <di:waypoint x="540" y="148" />
-        <di:waypoint x="560" y="148" />
+        <di:waypoint x="380" y="170" />
+        <di:waypoint x="450" y="170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_I4_di" bpmnElement="Flow_I4">
-        <di:waypoint x="660" y="148" />
-        <di:waypoint x="980" y="148" />
+        <di:waypoint x="550" y="170" />
+        <di:waypoint x="620" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I5_di" bpmnElement="Flow_I5">
+        <di:waypoint x="720" y="170" />
+        <di:waypoint x="790" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I6_di" bpmnElement="Flow_I6">
+        <di:waypoint x="890" y="170" />
+        <di:waypoint x="960" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I7_di" bpmnElement="Flow_I7">
+        <di:waypoint x="1010" y="210" />
+        <di:waypoint x="1010" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I8_di" bpmnElement="Flow_I8">
+        <di:waypoint x="1060" y="360" />
+        <di:waypoint x="1110" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I9_di" bpmnElement="Flow_I9">
+        <di:waypoint x="1210" y="360" />
+        <di:waypoint x="1240" y="360" />
+        <di:waypoint x="1240" y="170" />
+        <di:waypoint x="1260" y="170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I10_di" bpmnElement="Flow_I10">
+        <di:waypoint x="1310" y="210" />
+        <di:waypoint x="1310" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_I11_di" bpmnElement="Flow_I11">
+        <di:waypoint x="1360" y="360" />
+        <di:waypoint x="1410" y="360" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

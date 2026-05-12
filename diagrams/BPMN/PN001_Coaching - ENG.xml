@@ -1,132 +1,296 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.12.0">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.13.2">
   <bpmn:collaboration id="Collaboration_1">
     <bpmn:participant id="Participant_1" name="Entartes School - Coaching Booking" processRef="Process_1" />
   </bpmn:collaboration>
   <bpmn:process id="Process_1" isExecutable="false">
     <bpmn:laneSet id="LaneSet_1">
-      <bpmn:lane id="Lane_Requester" name="Applicant (Student / Teacher)">
-        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Task_RequestCoaching</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>EndEvent_Success</bpmn:flowNodeRef>
+      <bpmn:lane id="Lane_Student" name="Student">
+        <bpmn:flowNodeRef>StartEvent_Need</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ViewSchedule</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenBookingForm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_FillBookingForm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_BookingValidity</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SubmitBookingRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ShowBookingValidationError</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_PostSubmit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>IntermediateTimer_48h</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_BookingInvalid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_AutoCancelled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_CancelledByStudent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CancelWithJustification</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ViewHistory</bpmn:flowNodeRef>
       </bpmn:lane>
-      <bpmn:lane id="Lane_Admin" name="Management / Coordination">
-        <bpmn:flowNodeRef>Task_ValidateRequest</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>BoundaryEvent_48h</bpmn:flowNodeRef>
+      <bpmn:lane id="Lane_Admin" name="Management">
+        <bpmn:flowNodeRef>Task_RejectBooking</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>EndEvent_Rejected</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gateway_Approval</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_OpenValidationsQueue</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_AdminReviewBooking</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AdminDecision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Scheduled</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
-    <bpmn:startEvent id="StartEvent_1" name="Need for Coaching">
-      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    <bpmn:startEvent id="StartEvent_Need" name="Student needs coaching">
+      <bpmn:outgoing>Flow_Start</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:userTask id="Task_RequestCoaching" name="Select Modality and Propose Schedule">
-      <bpmn:incoming>Flow_1</bpmn:incoming>
-      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    <bpmn:userTask id="Task_ViewSchedule" name="View Available Schedule">
+      <bpmn:incoming>Flow_Start</bpmn:incoming>
+      <bpmn:outgoing>Flow_View</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Task_ValidateRequest" name="Review and Validate Request">
-      <bpmn:incoming>Flow_2</bpmn:incoming>
-      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    <bpmn:userTask id="Task_OpenBookingForm" name="Open New Booking Form">
+      <bpmn:incoming>Flow_View</bpmn:incoming>
+      <bpmn:outgoing>Flow_OpenFill</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:boundaryEvent id="BoundaryEvent_48h" name="48h Deadline" attachedToRef="Task_ValidateRequest">
-      <bpmn:outgoing>Flow_Timeout</bpmn:outgoing>
-      <bpmn:timerEventDefinition />
-    </bpmn:boundaryEvent>
-    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_RequestCoaching" />
-    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_RequestCoaching" targetRef="Task_ValidateRequest" />
-    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_ValidateRequest" targetRef="Gateway_Approval" />
-    <bpmn:sequenceFlow id="Flow_Yes" name="Yes" sourceRef="Gateway_Approval" targetRef="EndEvent_Success" />
-    <bpmn:sequenceFlow id="Flow_No" name="No" sourceRef="Gateway_Approval" targetRef="EndEvent_Rejected" />
-    <bpmn:sequenceFlow id="Flow_Timeout" sourceRef="BoundaryEvent_48h" targetRef="EndEvent_Rejected" />
-    <bpmn:endEvent id="EndEvent_Rejected" name="Booking Cancelled">
-      <bpmn:incoming>Flow_No</bpmn:incoming>
-      <bpmn:incoming>Flow_Timeout</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:endEvent id="EndEvent_Success" name="Booking Confirmed">
-      <bpmn:incoming>Flow_Yes</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:exclusiveGateway id="Gateway_Approval" name="Approved?">
-      <bpmn:incoming>Flow_3</bpmn:incoming>
-      <bpmn:outgoing>Flow_Yes</bpmn:outgoing>
-      <bpmn:outgoing>Flow_No</bpmn:outgoing>
+    <bpmn:userTask id="Task_FillBookingForm" name="Fill Booking Form (teacher, modality, studio, date, time, format)">
+      <bpmn:incoming>Flow_OpenFill</bpmn:incoming>
+      <bpmn:outgoing>Flow_FillValidate</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_BookingValidity" name="Booking form valid?">
+      <bpmn:incoming>Flow_FillValidate</bpmn:incoming>
+      <bpmn:outgoing>Flow_BookingValid</bpmn:outgoing>
+      <bpmn:outgoing>Flow_BookingInvalid</bpmn:outgoing>
     </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_ShowBookingValidationError" name="Show validation error and fix booking form">
+      <bpmn:incoming>Flow_BookingInvalid</bpmn:incoming>
+      <bpmn:outgoing>Flow_BookingInvalidEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SubmitBookingRequest" name="Submit Booking Request (Pending_Approval)">
+      <bpmn:incoming>Flow_BookingValid</bpmn:incoming>
+      <bpmn:outgoing>Flow_SubmitToGateway</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_PostSubmit" name="What occurs first?">
+      <bpmn:incoming>Flow_SubmitToGateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_ToAdminReview</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ToStudentCancel</bpmn:outgoing>
+      <bpmn:outgoing>Flow_ToTimer</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateCatchEvent id="IntermediateTimer_48h" name="48h elapsed">
+      <bpmn:incoming>Flow_ToTimer</bpmn:incoming>
+      <bpmn:outgoing>Flow_TimerToEnd</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_48h" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="EndEvent_AutoCancelled" name="Cancelled (auto, 48h)">
+      <bpmn:incoming>Flow_TimerToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_BookingInvalid" name="Booking validation failed">
+      <bpmn:incoming>Flow_BookingInvalidEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_RejectBooking" name="Reject with Reason">
+      <bpmn:incoming>Flow_AdminReject</bpmn:incoming>
+      <bpmn:outgoing>Flow_RejectToEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Rejected" name="Cancelled_Rejected">
+      <bpmn:incoming>Flow_RejectToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start" sourceRef="StartEvent_Need" targetRef="Task_ViewSchedule" />
+    <bpmn:sequenceFlow id="Flow_View" sourceRef="Task_ViewSchedule" targetRef="Task_OpenBookingForm" />
+    <bpmn:sequenceFlow id="Flow_OpenFill" sourceRef="Task_OpenBookingForm" targetRef="Task_FillBookingForm" />
+    <bpmn:sequenceFlow id="Flow_FillValidate" sourceRef="Task_FillBookingForm" targetRef="Gateway_BookingValidity" />
+    <bpmn:sequenceFlow id="Flow_BookingValid" name="Valid" sourceRef="Gateway_BookingValidity" targetRef="Task_SubmitBookingRequest" />
+    <bpmn:sequenceFlow id="Flow_BookingInvalid" name="Invalid" sourceRef="Gateway_BookingValidity" targetRef="Task_ShowBookingValidationError" />
+    <bpmn:sequenceFlow id="Flow_BookingInvalidEnd" sourceRef="Task_ShowBookingValidationError" targetRef="EndEvent_BookingInvalid" />
+    <bpmn:sequenceFlow id="Flow_SubmitToGateway" sourceRef="Task_SubmitBookingRequest" targetRef="Gateway_PostSubmit" />
+    <bpmn:sequenceFlow id="Flow_ToAdminReview" name="Admin reviews" sourceRef="Gateway_PostSubmit" targetRef="Task_OpenValidationsQueue" />
+    <bpmn:sequenceFlow id="Flow_ToStudentCancel" name="Student cancels" sourceRef="Gateway_PostSubmit" targetRef="Task_ViewHistory" />
+    <bpmn:sequenceFlow id="Flow_ToTimer" name="48h pass" sourceRef="Gateway_PostSubmit" targetRef="IntermediateTimer_48h" />
+    <bpmn:sequenceFlow id="Flow_HistoryToCancel" sourceRef="Task_ViewHistory" targetRef="Task_CancelWithJustification" />
+    <bpmn:sequenceFlow id="Flow_CancelToEnd" sourceRef="Task_CancelWithJustification" targetRef="EndEvent_CancelledByStudent" />
+    <bpmn:sequenceFlow id="Flow_TimerToEnd" sourceRef="IntermediateTimer_48h" targetRef="EndEvent_AutoCancelled" />
+    <bpmn:sequenceFlow id="Flow_OpenQueueToReview" sourceRef="Task_OpenValidationsQueue" targetRef="Task_AdminReviewBooking" />
+    <bpmn:sequenceFlow id="Flow_ReviewToDecision" sourceRef="Task_AdminReviewBooking" targetRef="Gateway_AdminDecision" />
+    <bpmn:sequenceFlow id="Flow_AdminApprove" name="Yes" sourceRef="Gateway_AdminDecision" targetRef="EndEvent_Scheduled" />
+    <bpmn:sequenceFlow id="Flow_AdminReject" name="No" sourceRef="Gateway_AdminDecision" targetRef="Task_RejectBooking" />
+    <bpmn:sequenceFlow id="Flow_RejectToEnd" sourceRef="Task_RejectBooking" targetRef="EndEvent_Rejected" />
+    <bpmn:endEvent id="EndEvent_CancelledByStudent" name="Cancelled_Justified">
+      <bpmn:incoming>Flow_CancelToEnd</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Task_CancelWithJustification" name="Cancel with Justification">
+      <bpmn:incoming>Flow_HistoryToCancel</bpmn:incoming>
+      <bpmn:outgoing>Flow_CancelToEnd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ViewHistory" name="View History (session is pending)">
+      <bpmn:incoming>Flow_ToStudentCancel</bpmn:incoming>
+      <bpmn:outgoing>Flow_HistoryToCancel</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_OpenValidationsQueue" name="Open Validations Queue (Pedidos de coaching)">
+      <bpmn:incoming>Flow_ToAdminReview</bpmn:incoming>
+      <bpmn:outgoing>Flow_OpenQueueToReview</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_AdminReviewBooking" name="Review Booking Request">
+      <bpmn:incoming>Flow_OpenQueueToReview</bpmn:incoming>
+      <bpmn:outgoing>Flow_ReviewToDecision</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_AdminDecision" name="Approve?">
+      <bpmn:incoming>Flow_ReviewToDecision</bpmn:incoming>
+      <bpmn:outgoing>Flow_AdminApprove</bpmn:outgoing>
+      <bpmn:outgoing>Flow_AdminReject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_Scheduled" name="Scheduled">
+      <bpmn:incoming>Flow_AdminApprove</bpmn:incoming>
+    </bpmn:endEvent>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
       <bpmndi:BPMNShape id="Participant_1_di" bpmnElement="Participant_1" isHorizontal="true">
-        <dc:Bounds x="120" y="80" width="640" height="330" />
+        <dc:Bounds x="120" y="80" width="1620" height="640" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_Admin_di" bpmnElement="Lane_Admin" isHorizontal="true">
-        <dc:Bounds x="150" y="230" width="610" height="180" />
+        <dc:Bounds x="150" y="460" width="1590" height="260" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Lane_Requester_di" bpmnElement="Lane_Requester" isHorizontal="true">
-        <dc:Bounds x="150" y="80" width="610" height="150" />
+      <bpmndi:BPMNShape id="Lane_Student_di" bpmnElement="Lane_Student" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1590" height="380" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
-        <dc:Bounds x="200" y="130" width="36" height="36" />
+      <bpmndi:BPMNShape id="StartEvent_Need_di" bpmnElement="StartEvent_Need">
+        <dc:Bounds x="200" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="180" y="215" width="78" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_RequestCoaching_di" bpmnElement="Task_RequestCoaching">
-        <dc:Bounds x="280" y="108" width="100" height="80" />
+      <bpmndi:BPMNShape id="Task_ViewSchedule_di" bpmnElement="Task_ViewSchedule">
+        <dc:Bounds x="280" y="150" width="110" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Task_ValidateRequest_di" bpmnElement="Task_ValidateRequest">
-        <dc:Bounds x="280" y="270" width="100" height="80" />
+      <bpmndi:BPMNShape id="Task_OpenBookingForm_di" bpmnElement="Task_OpenBookingForm">
+        <dc:Bounds x="420" y="150" width="110" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FillBookingForm_di" bpmnElement="Task_FillBookingForm">
+        <dc:Bounds x="560" y="150" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SubmitBookingRequest_di" bpmnElement="Task_SubmitBookingRequest">
+        <dc:Bounds x="710" y="150" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_PostSubmit_di" bpmnElement="Gateway_PostSubmit" isMarkerVisible="true">
+        <dc:Bounds x="865" y="165" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="853" y="135" width="74" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateTimer_48h_di" bpmnElement="IntermediateTimer_48h">
+        <dc:Bounds x="960" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="947" y="345" width="62" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_AutoCancelled_di" bpmnElement="EndEvent_AutoCancelled">
+        <dc:Bounds x="1090" y="302" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1062" y="345" width="92" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RejectBooking_di" bpmnElement="Task_RejectBooking">
+        <dc:Bounds x="1310" y="620" width="130" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_Rejected_di" bpmnElement="EndEvent_Rejected">
-        <dc:Bounds x="672" y="292" width="36" height="36" />
+        <dc:Bounds x="1500" y="642" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="665" y="254.5" width="49" height="27" />
+          <dc:Bounds x="1480" y="685" width="78" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_Success_di" bpmnElement="EndEvent_Success">
-        <dc:Bounds x="672" y="130" width="36" height="36" />
+      <bpmndi:BPMNShape id="EndEvent_CancelledByStudent_di" bpmnElement="EndEvent_CancelledByStudent">
+        <dc:Bounds x="1357" y="172" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="664" y="176" width="51" height="27" />
+          <dc:Bounds x="1334" y="215" width="84" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_Approval_di" bpmnElement="Gateway_Approval" isMarkerVisible="true">
-        <dc:Bounds x="495" y="285" width="50" height="50" />
+      <bpmndi:BPMNShape id="Task_CancelWithJustification_di" bpmnElement="Task_CancelWithJustification">
+        <dc:Bounds x="1175" y="150" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ViewHistory_di" bpmnElement="Task_ViewHistory">
+        <dc:Bounds x="1015" y="150" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_OpenValidationsQueue_di" bpmnElement="Task_OpenValidationsQueue">
+        <dc:Bounds x="850" y="530" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AdminReviewBooking_di" bpmnElement="Task_AdminReviewBooking">
+        <dc:Bounds x="1043" y="530" width="130" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AdminDecision_di" bpmnElement="Gateway_AdminDecision" isMarkerVisible="true">
+        <dc:Bounds x="1215" y="545" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="493" y="335" width="54" height="14" />
+          <dc:Bounds x="1216" y="515" width="48" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BoundaryEvent_48h_di" bpmnElement="BoundaryEvent_48h">
-        <dc:Bounds x="330" y="332" width="36" height="36" />
+      <bpmndi:BPMNShape id="EndEvent_Scheduled_di" bpmnElement="EndEvent_Scheduled">
+        <dc:Bounds x="1382" y="552" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="357" y="368" width="65" height="14" />
+          <dc:Bounds x="1374" y="595" width="52" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
-        <di:waypoint x="236" y="148" />
-        <di:waypoint x="280" y="148" />
+      <bpmndi:BPMNEdge id="Flow_Start_di" bpmnElement="Flow_Start">
+        <di:waypoint x="236" y="190" />
+        <di:waypoint x="280" y="190" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
-        <di:waypoint x="330" y="188" />
-        <di:waypoint x="330" y="270" />
+      <bpmndi:BPMNEdge id="Flow_View_di" bpmnElement="Flow_View">
+        <di:waypoint x="390" y="190" />
+        <di:waypoint x="420" y="190" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
-        <di:waypoint x="380" y="310" />
-        <di:waypoint x="495" y="310" />
+      <bpmndi:BPMNEdge id="Flow_OpenFill_di" bpmnElement="Flow_OpenFill">
+        <di:waypoint x="530" y="190" />
+        <di:waypoint x="560" y="190" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_Yes_di" bpmnElement="Flow_Yes">
-        <di:waypoint x="520" y="285" />
-        <di:waypoint x="520" y="148" />
-        <di:waypoint x="672" y="148" />
+      <bpmndi:BPMNEdge id="Flow_SubmitToGateway_di" bpmnElement="Flow_SubmitToGateway">
+        <di:waypoint x="830" y="190" />
+        <di:waypoint x="865" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToAdminReview_di" bpmnElement="Flow_ToAdminReview">
+        <di:waypoint x="890" y="215" />
+        <di:waypoint x="890" y="530" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="631" y="153" width="18" height="14" />
+          <dc:Bounds x="898" y="473" width="72" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_No_di" bpmnElement="Flow_No">
-        <di:waypoint x="545" y="310" />
-        <di:waypoint x="672" y="310" />
+      <bpmndi:BPMNEdge id="Flow_ToStudentCancel_di" bpmnElement="Flow_ToStudentCancel">
+        <di:waypoint x="915" y="190" />
+        <di:waypoint x="1015" y="190" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="622" y="285" width="15" height="14" />
+          <dc:Bounds x="926" y="170" width="79" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_Timeout_di" bpmnElement="Flow_Timeout">
-        <di:waypoint x="348" y="368" />
-        <di:waypoint x="348" y="390" />
-        <di:waypoint x="690" y="390" />
-        <di:waypoint x="690" y="328" />
+      <bpmndi:BPMNEdge id="Flow_ToTimer_di" bpmnElement="Flow_ToTimer">
+        <di:waypoint x="895" y="210" />
+        <di:waypoint x="920" y="320" />
+        <di:waypoint x="960" y="320" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="913" y="257" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_HistoryToCancel_di" bpmnElement="Flow_HistoryToCancel">
+        <di:waypoint x="1145" y="190" />
+        <di:waypoint x="1175" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_CancelToEnd_di" bpmnElement="Flow_CancelToEnd">
+        <di:waypoint x="1305" y="190" />
+        <di:waypoint x="1357" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_TimerToEnd_di" bpmnElement="Flow_TimerToEnd">
+        <di:waypoint x="996" y="320" />
+        <di:waypoint x="1090" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_OpenQueueToReview_di" bpmnElement="Flow_OpenQueueToReview">
+        <di:waypoint x="1010" y="570" />
+        <di:waypoint x="1043" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ReviewToDecision_di" bpmnElement="Flow_ReviewToDecision">
+        <di:waypoint x="1173" y="570" />
+        <di:waypoint x="1215" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AdminApprove_di" bpmnElement="Flow_AdminApprove">
+        <di:waypoint x="1265" y="570" />
+        <di:waypoint x="1382" y="570" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1306" y="550" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_AdminReject_di" bpmnElement="Flow_AdminReject">
+        <di:waypoint x="1240" y="595" />
+        <di:waypoint x="1240" y="660" />
+        <di:waypoint x="1310" y="660" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1248" y="617" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_RejectToEnd_di" bpmnElement="Flow_RejectToEnd">
+        <di:waypoint x="1440" y="660" />
+        <di:waypoint x="1500" y="660" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
