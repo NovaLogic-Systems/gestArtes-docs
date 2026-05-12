@@ -250,8 +250,11 @@ sequenceDiagram
     actor Admin
     participant Platform as Platform
     participant InventoryController as InventoryController
+    participant AdminInventoryController as AdminInventoryController
     participant InventoryService as InventoryService
-    participant InventoryUseCases as InventoryUseCases
+    participant CreateRentalUseCase as CreateRentalUseCase
+    participant ApproveRentalUseCase as ApproveRentalUseCase
+    participant VerifyReturnUseCase as VerifyReturnUseCase
 
     Student->>Platform: browseInventory()
     Platform->>InventoryController: listItems(query)
@@ -260,60 +263,111 @@ sequenceDiagram
     InventoryController-->>Platform: { items }
     Platform-->>Student: Display catalog
 
-    Student->>Platform: requestRental(itemId, rentalPeriod)
+    Student->>Platform: requestRental(itemId, rentalPeriod, paymentMethodId)
     Platform->>InventoryController: createRental(payload)
-    InventoryController->>InventoryUseCases: execute(renterId, payload)
-    InventoryUseCases-->>InventoryController: { rental, checkoutSummary }
+    InventoryController->>CreateRentalUseCase: execute(renterId, payload)
+    CreateRentalUseCase-->>InventoryController: { rental, checkoutSummary }
     InventoryController-->>Platform: { rental, checkoutSummary }
-    Platform-->>Student: Rental created
+    Platform-->>Student: Rental created (Awaiting Approval)
 
-    Admin->>Platform: verifyReturn(rentalId)
-    Platform->>InventoryController: listRentals()
+    Admin->>Platform: listAdminRentals()
+    Platform->>AdminInventoryController: getRentals()
+    AdminInventoryController->>InventoryService: listRentals()
+    InventoryService-->>AdminInventoryController: { rentals }
+    AdminInventoryController-->>Platform: { rentals }
+    Platform-->>Admin: Display rentals queue
+
+    Admin->>Platform: approveRental(rentalId)
+    Platform->>AdminInventoryController: approveRental(rentalId)
+    AdminInventoryController->>ApproveRentalUseCase: execute(rentalId, adminUserId)
+    ApproveRentalUseCase-->>AdminInventoryController: { rental }
+    AdminInventoryController-->>Platform: { rental }
+    Platform-->>Admin: Rental approved
+
+    Student->>Platform: checkRentalStatus()
+    Platform->>InventoryController: getRentals()
     InventoryController->>InventoryService: listRentalsByRenterId(renterId)
     InventoryService-->>InventoryController: { rentals }
     InventoryController-->>Platform: { rentals }
-    Platform-->>Admin: Display rentals
+    Platform-->>Student: Display rental status
+
+    Admin->>Platform: verifyReturn(rentalId, conditionStatus, conditionNotes)
+    Platform->>AdminInventoryController: verifyReturn(rentalId, payload)
+    AdminInventoryController->>VerifyReturnUseCase: execute(rentalId, payload, adminUserId)
+    VerifyReturnUseCase-->>AdminInventoryController: { rental }
+    AdminInventoryController-->>Platform: { rental }
+    Platform-->>Admin: Return verified
 ```
 
 ---
 
-## SD-09: Community Marketplace Transaction
+## SD-09: Community Marketplace Listings and Moderation
 
 ```mermaid
 sequenceDiagram
-    actor Student
+    actor Seller as Student (Seller)
+    actor Buyer as Student (Buyer)
+    actor Admin
     participant Platform as Platform
     participant MarketplaceController as MarketplaceController
-    participant MarketplaceService as MarketplaceService
+    participant AdminMarketplaceController as AdminMarketplaceController
+    participant ApproveListingUseCase as ApproveListingUseCase
+    participant RejectListingUseCase as RejectListingUseCase
 
-    Student->>Platform: browseMarketplace()
-    Platform->>MarketplaceController: getListings(query)
-    MarketplaceController->>MarketplaceService: getListings(query)
-    MarketplaceService-->>MarketplaceController: { listings }
-    MarketplaceController-->>Platform: { listings }
-    Platform-->>Student: Display items
-
-    Student->>Platform: createListing(itemData)
-    Platform->>MarketplaceController: createListing(itemData)
-    MarketplaceController->>MarketplaceService: createListing(sellerId, itemData)
-    MarketplaceService-->>MarketplaceController: { listing }
+    Seller->>Platform: createListing(title, description, price, category, condition, photo)
+    Platform->>MarketplaceController: createListing(payload)
     MarketplaceController-->>Platform: { listing }
-    Platform-->>Student: Listing created
+    Platform-->>Seller: Listing submitted (Pending Review)
 
-    Student->>Platform: getMyListings()
+    Admin->>Platform: openMarketplaceModeration()
+    Platform->>AdminMarketplaceController: listPendingListings()
+    AdminMarketplaceController-->>Platform: { listings }
+    Platform-->>Admin: Display pending listings
+
+    alt Admin approves listing
+        Admin->>Platform: approveListing(listingId)
+        Platform->>AdminMarketplaceController: approveListing(listingId)
+        AdminMarketplaceController->>ApproveListingUseCase: execute(listingId, adminUserId)
+        ApproveListingUseCase-->>AdminMarketplaceController: { listing }
+        AdminMarketplaceController-->>Platform: { listing }
+        Platform-->>Admin: Listing approved
+    else Admin rejects listing
+        Admin->>Platform: rejectListing(listingId, reason)
+        Platform->>AdminMarketplaceController: rejectListing(listingId, reason)
+        AdminMarketplaceController->>RejectListingUseCase: execute(listingId, reason, adminUserId)
+        RejectListingUseCase-->>AdminMarketplaceController: { listing }
+        AdminMarketplaceController-->>Platform: { listing }
+        Platform-->>Admin: Listing rejected
+    end
+
+    Buyer->>Platform: browseMarketplace(filters)
+    Platform->>MarketplaceController: getListings(query)
+    MarketplaceController-->>Platform: { listings }
+    Platform-->>Buyer: Display listings
+
+    Buyer->>Platform: openListingDetail(listingId)
+    Platform->>MarketplaceController: getListingById(listingId)
+    MarketplaceController-->>Platform: { listing (with seller contact) }
+    Platform-->>Buyer: Display detail (Email / WhatsApp)
+
+    Note over Buyer,Seller: Negotiation and payment happen externally (out of platform)
+
+    Seller->>Platform: manageMyListings()
     Platform->>MarketplaceController: getMyListings()
     MarketplaceController-->>Platform: { listings }
-    Platform-->>Student: Display my listings
+    Platform-->>Seller: Display my listings
 
-    Student->>Platform: updateListing(listingId, updateData)
-    Platform->>MarketplaceController: updateListing(listingId, updateData)
-    MarketplaceController-->>Platform: { listing }
-    Platform-->>Student: Listing updated
-
-    Student->>Platform: deleteListing(listingId)
-    Platform->>MarketplaceController: deleteListing(listingId)
-    MarketplaceController-->>Platform: { listing }
-    Platform-->>Student: Listing deleted
+    alt Update listing
+        Seller->>Platform: updateListing(listingId, updateData)
+        Platform->>MarketplaceController: updateListing(listingId, updateData)
+        MarketplaceController-->>Platform: { listing }
+        Platform-->>Seller: Listing updated
+    else Delete listing
+        Seller->>Platform: deleteListing(listingId)
+        Platform->>MarketplaceController: deleteListing(listingId)
+        MarketplaceController-->>Platform: { ok }
+        Platform-->>Seller: Listing deleted
+    end
 ```
 
 ---

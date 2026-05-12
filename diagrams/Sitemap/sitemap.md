@@ -5,45 +5,71 @@ graph TD
     Root --> Prof[3. Teacher View]
     Root --> Admin[4. Admin / Management View]
 
+    %% ── Authentication ─────────────────────────────────────
     Auth --> Login[Login]
-    Auth --> Recup[Password Recovery]
+    Auth --> Recup[Forgot Password]
+    Auth --> Unauth[Unauthorized]
 
+    %% ── Student ────────────────────────────────────────────
     EE --> EEDash[Dashboard]
     EE --> EECoach[Coaching]
+    EE --> EEHist[Session History]
     EE --> EESchInv[School Inventory]
     EE --> EEMarket[Community Marketplace]
-    EE --> EEPyA[Lost and Found]
+    EE --> EELost[Lost and Found]
+    EE --> EENotif[Notifications]
     EE --> EEConta[My Account]
 
-    EECoach --> EECoach1[New Booking]
-    EECoach --> EECoach2[My History]
-    EECoach --> EECoach3[Cancel & Justify]
-    EECoach --> EECoach4[Confirm Execution]
+    EESchInv --> EESchInv1[Catalog]
+    EESchInv --> EESchInv2[Rental Checkout]
+    EESchInv --> EESchInv3[My Rental Requests]
 
-    EESchInv --> EESchInv1[Official Catalog]
-    
-    EEMarket --> EEMarket1[Browse Items]
-    EEMarket --> EEMarket2[Add Listing]
+    EEMarket --> EEMarket1[Browse Listings]
+    EEMarket --> EEMarket2[My Listings]
 
+    EEHist --> EEHist1[Confirm Execution]
+    EEHist --> EEHist2[Cancel with Justification]
+
+    %% ── Teacher ────────────────────────────────────────────
     Prof --> ProfDash[Dashboard]
-    Prof --> ProfAg[Schedule]
-    Prof --> ProfCoach[Coaching]
+    Prof --> ProfAg[Schedule Submission]
+    Prof --> ProfCoach[Coaching Requests Review]
+    Prof --> ProfAdm[Admission Requests]
+    Prof --> ProfConf[Session Confirmation]
+    Prof --> ProfInv[School Inventory]
     Prof --> ProfMarket[Community Marketplace]
+    Prof --> ProfNotif[Notifications]
+    Prof --> ProfConta[My Account]
+    Prof --> ProfCreate[Create Coaching]
 
-    ProfAg --> ProfAg1[Input Availability]
-    ProfAg --> ProfAg2[My Calendar]
-    
-    ProfCoach --> ProfCoach1[Confirm Completion]
-    ProfCoach --> ProfCoach2[Record No-Show]
+    ProfAg --> ProfAg1[Submit Weekly / Punctual Availability]
+    ProfAg --> ProfAg2[Report Absence]
 
-    Admin --> AdDash[Dashboard Admin]
-    Admin --> AdVal[Validation Queue]
+    ProfConf --> ProfConf1[Confirm Completion]
+    ProfConf --> ProfConf2[Record No-Show]
+
+    ProfMarket --> ProfMarket1[Browse Listings]
+    ProfMarket --> ProfMarket2[My Listings]
+
+    %% ── Admin ──────────────────────────────────────────────
+    Admin --> AdDash[Dashboard]
     Admin --> AdEst[Studio Management]
+    Admin --> AdOcc[Studio Occupancy]
     Admin --> AdUsers[User Management]
-    Admin --> AdInv[Inventory & Marketplace]
-    Admin --> AdFin[Finance & Reports]
+    Admin --> AdVal[Validations Queue]
+    Admin --> AdLost[Lost and Found Admin]
+    Admin --> AdInv[Inventory Management]
+    Admin --> AdMkt[Marketplace Moderation]
+    Admin --> AdFin[Finance Dashboard]
+    Admin --> AdAud[Audit Log]
+    Admin --> AdNotif[Notifications]
 
-    AdVal --> AdVal1[Approve Bookings]
+    AdVal --> AdVal1[Booking Requests]
     AdVal --> AdVal2[Final Validations]
-    AdUsers --> AdUsers1[Register Accounts]
+    AdVal --> AdVal3[Join Requests Approvals]
+    AdVal --> AdVal4[Availability Approvals]
+
+    AdInv --> AdInv1[Items CRUD]
+    AdInv --> AdInv2[Approve Rentals]
+    AdInv --> AdInv3[Verify / Reject Returns]
 ```

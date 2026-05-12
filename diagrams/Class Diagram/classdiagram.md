@@ -120,6 +120,7 @@ classDiagram
         +IsExternal: Boolean
         +IsOutsideStdHours: Boolean
         +CreatedAt: DateTime
+        +ValidationRequestedAt?: DateTime
         +ReviewedByUserID?: Int
         +ReviewedAt?: DateTime
         +ReviewNotes?: String

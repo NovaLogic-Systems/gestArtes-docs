@@ -2,33 +2,37 @@
 stateDiagram-v2
     direction TB
 
-    %% Request start
-    [*] --> Pending_Approval : Request Submitted(Student / Teacher)
+    %% Request start (Pending_Approval is seeded in DB)
+    [*] --> Pending_Approval : Request Submitted (Student / Teacher)
 
-    %% Booking validation
-    Pending_Approval --> Scheduled : School Management Action(Validates & Approves)
-    Pending_Approval --> Cancelled_Timeout : System Event(48h passes without action)
-    Pending_Approval --> Cancelled_Rejected : School Management Action(Rejects due to no vacancy)
+    %% Booking validation (Scheduled is auto-created by approve-session.usecase.js)
+    Pending_Approval --> Scheduled : Management approves
+    Pending_Approval --> Cancelled : autoCancel job (48h timeout)
+    Pending_Approval --> Cancelled_Rejected : Management rejects (no vacancy)
 
-    %% Post-coaching validation flow (Teacher or Student confirms, then Management finalises)
-    Scheduled --> Completion_Confirmation_Pending : Lesson Completed
-    Completion_Confirmation_Pending --> Finalization_Validation_Pending : Teacher or Student Account(Confirms completion)
-    Finalization_Validation_Pending --> Finalized : Management Action(Validates finalisation)
+    %% Post-coaching validation flow (Teacher confirms, then Student/Parent confirms, then Management finalises)
+    Scheduled --> Completion_Confirmation_Pending : Teacher confirms session completion
+    Completion_Confirmation_Pending --> Finalization_Validation_Pending : Student (or Parent) confirms execution
+    Finalization_Validation_Pending --> Finalized : Management finalises validation (creates FinancialEntry)
 
-    %% Automatic accounting update
-    Finalized --> Accounting_Table_Updated : System Event(Automatic Entry)
+    %% Exception flows during scheduled lesson
+    Scheduled --> No_Show : Teacher records absence w/ no notice
+    Scheduled --> Cancelled_Justified : Student cancels with justification
 
-    %% Exception flow during scheduled lesson
-    Scheduled --> No_Show : Teacher Action(Reports Absence w/ no notice)
-    Scheduled --> Cancelled_Justified : Student Account(Cancels with valid reason)
-
-    No_Show --> Accounting_Table_Updated : School Management Final Audit(Charges 100%)
-    Cancelled_Justified --> Accounting_Table_Updated : School Management Final Audit(Evaluates exemption)
-
-    %% Final states
-    Cancelled_Timeout --> [*]
+    %% Final states (FinancialEntry is generated as part of Finalized transition)
+    Cancelled --> [*]
     Cancelled_Rejected --> [*]
-    Accounting_Table_Updated --> [*]
+    Cancelled_Justified --> [*]
+    No_Show --> [*]
+    Finalized --> [*]
 ```
 
-
+> Status names align with `SessionStatus` rows seeded in
+> [`prisma/migrations/20260511_000001_session_status_seed/migration.sql`](../../../gestArtes-api/prisma/migrations/20260511_000001_session_status_seed/migration.sql).
+> `Scheduled` and `Cancelled_Rejected` are auto-created by the admin-session
+> use-cases when first needed
+> ([`approve-session.usecase.js`](../../../gestArtes-api/src/application/use-cases/admin-sessions/approve-session.usecase.js),
+> [`reject-session.usecase.js`](../../../gestArtes-api/src/application/use-cases/admin-sessions/reject-session.usecase.js)).
+> The 48h timeout transition is performed by
+> [`autoCancel.js`](../../../gestArtes-api/src/jobs/autoCancel.js), which sets
+> `StatusID = 5` (Cancelled).
