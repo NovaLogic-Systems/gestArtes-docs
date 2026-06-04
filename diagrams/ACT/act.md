@@ -6,7 +6,7 @@ flowchart TD
     classDef bar fill:#000,stroke:#000,stroke-width:6px,color:#fff;
     classDef startend fill:#000,stroke:#000,color:#fff;
 
-    Start((Start)):::startend --> A1[Teacher.createSessionInitiative() — Session=PENDING_APPROVAL]:::action
+    Start((Start)):::startend --> A1[Teacher.createSessionInitiative() — Session→PENDING_APPROVAL]:::action
 
     %% Fork: approval path vs timeout
     A1 --> Fork1[          ]:::bar
@@ -31,17 +31,17 @@ flowchart TD
     A6 --> D2{Lesson Outcome}:::decision
 
     D2 -- Attended --> A11[Teacher OR Student confirmCompletion() — teacher.controller.confirmCompletion() / coachingService.confirmCompletion()]:::action
-    A11 --> A13[Create SessionValidation — set Session.status = FINALIZATION_VALIDATION_PENDING]:::action
+    A11 --> A13[Create SessionValidation — Session→FINALIZATION_VALIDATION_PENDING]:::action
 
     D2 -- Cancelled with reason --> A9[Requester calls coachingService.cancelBooking(justification)]:::action
-    A9 --> A10[System records CANCELLED_JUSTIFIED status]:::action
+    A9 --> A10[System records status→CANCELLED_JUSTIFIED]:::action
     A10 --> A13
 
     D2 -- No-Show (no notice) --> A7[Teacher registers no-show — teacher.controller.registerNoShow(sessionId, studentAccountId, remarks)]:::action
-    A7 --> A8[pricingService.applyNoShowPenalty(sessionId) — FinancialEntry type=no_show_fee (full price)]:::action
+    A7 --> A8[pricingService.applyNoShowPenalty(sessionId) — FinancialEntry type→no_show_fee (full price)]:::action
 
     %% Final management / accounting
-    A13 --> A14[adminService.finalizeSessionValidation() — AdminFinalValidation → Finalized + session_revenue FinancialEntry]:::action
+    A13 --> A14[adminService.finalizeSessionValidation() — AdminFinalValidation→Finalized + session_revenue FinancialEntry]:::action
     A8 --> A14
 
     A14 --> End2((End)):::startend
