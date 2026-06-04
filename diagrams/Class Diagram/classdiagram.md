@@ -53,7 +53,9 @@ classDiagram
         +BirthDate: Date
         +GuardianName?: String
         +GuardianPhone?: String
+        +IsModalityLocked: Boolean
         +getProfile()
+        +getDashboard()
         +getUpcomingSchedule()
         +getSessionHistory()
     }
@@ -489,6 +491,121 @@ classDiagram
         +Detail?: String
     }
 
+    class CoachingRequest {
+        +RequestID: Int
+        +StudentUserID: Int
+        +TeacherUserID: Int
+        +RequestedByUserID: Int
+        +ModalityID: Int
+        +StudioID?: Int
+        +ConfirmedSessionID?: Int
+        +GroupProposalID?: Int
+        +PreferredStartTime: DateTime
+        +PreferredEndTime?: DateTime
+        +CurrentStartTime: DateTime
+        +CurrentEndTime?: DateTime
+        +SuggestedStartTime?: DateTime
+        +SuggestedEndTime?: DateTime
+        +Status: String
+        +RequestNotes?: String
+        +TeacherResponseNotes?: String
+        +StudentResponseNotes?: String
+        +AdminResponseNotes?: String
+        +RequestedAt: DateTime
+        +UpdatedAt?: DateTime
+        +ResolvedAt?: DateTime
+        +createCoachingRequest()
+        +listModalities()
+        +listTeachersByModality()
+        +getTeacherWeeklyAvailability()
+        +listRequestsForStudent()
+        +listRequestsForTeacher()
+        +listRequestsForAdmin()
+        +getRequestById()
+        +reviewRequestAsTeacher()
+        +respondToTeacherSuggestion()
+        +reviewRequestAsAdmin()
+        +getCompatibleStudiosForRequest()
+    }
+
+    class CoachingRequestAction {
+        +RequestActionID: Int
+        +RequestID: Int
+        +ActorUserID: Int
+        +ActionType: String
+        +PreviousStatus?: String
+        +NextStatus?: String
+        +Message?: String
+        +ProposedStartTime?: DateTime
+        +ProposedEndTime?: DateTime
+        +CreatedAt: DateTime
+    }
+
+    class GroupCoachingProposal {
+        +ProposalID: Int
+        +TeacherUserID: Int
+        +ModalityID: Int
+        +StudioID?: Int
+        +ConfirmedSessionID?: Int
+        +StartTime: DateTime
+        +EndTime: DateTime
+        +Status: String
+        +Notes?: String
+        +AdminResponseNotes?: String
+        +RequestedAt: DateTime
+        +UpdatedAt?: DateTime
+        +ResolvedAt?: DateTime
+        +searchStudents()
+        +createProposal()
+        +listTeacherProposals()
+        +listAdminProposals()
+        +getCompatibleStudios()
+        +reviewProposal()
+    }
+
+    class GroupCoachingParticipant {
+        +ParticipantID: Int
+        +ProposalID: Int
+        +StudentUserID: Int
+        +SourceRequestID?: Int
+        +AddedAt: DateTime
+    }
+
+    class StudentAllowedModality {
+        +StudentAccountID: Int
+        +ModalityID: Int
+    }
+
+    class Timetable {
+        +TimetableID: Int
+        +Label: String
+        +IsActive: Boolean
+        +CreatedBy?: Int
+        +CreatedAt: DateTime
+        +listTimetables()
+        +getTimetable()
+        +createTimetable()
+        +updateTimetable()
+        +deleteTimetable()
+    }
+
+    class TimetableSlot {
+        +SlotID: Int
+        +TimetableID: Int
+        +DayOfWeek: Int
+        +StartMinutes: Int
+        +EndMinutes: Int
+        +Title: String
+        +TeacherUserID?: Int
+        +StudioID?: Int
+        +ModalityID?: Int
+        +Color?: String
+        +Notes?: String
+        +createSlot()
+        +updateSlot()
+        +deleteSlot()
+    }
+
     
 
     
@@ -592,4 +709,33 @@ classDiagram
 
     
     User "0..1" <-- "0..*" AuditLog : performed by
+
+    
+    User "1" <-- "0..*" CoachingRequest : student / teacher / requested by
+    Modality "1" <-- "0..*" CoachingRequest : modality
+    Studio "0..1" <-- "0..*" CoachingRequest : studio
+    CoachingSession "0..1" <-- "0..*" CoachingRequest : confirmed session
+    CoachingRequest "1" *-- "0..*" CoachingRequestAction : actions
+    User "1" <-- "0..*" CoachingRequestAction : actor
+    GroupCoachingProposal "0..1" <-- "0..*" CoachingRequest : group proposal
+
+    
+    User "1" <-- "0..*" GroupCoachingProposal : teacher
+    Modality "1" <-- "0..*" GroupCoachingProposal : modality
+    Studio "0..1" <-- "0..*" GroupCoachingProposal : studio
+    CoachingSession "0..1" <-- "0..*" GroupCoachingProposal : confirmed session
+    GroupCoachingProposal "1" *-- "0..*" GroupCoachingParticipant : participants
+    User "1" <-- "0..*" GroupCoachingParticipant : student
+    CoachingRequest "0..1" <-- "0..*" GroupCoachingParticipant : source request
+
+    
+    StudentAccount "1" *-- "0..*" StudentAllowedModality : allowed modalities
+    Modality "1" <-- "0..*" StudentAllowedModality : modality
+
+    
+    Timetable "1" *-- "0..*" TimetableSlot : slots
+    User "0..1" <-- "0..*" Timetable : created by
+    User "0..1" <-- "0..*" TimetableSlot : teacher
+    Studio "0..1" <-- "0..*" TimetableSlot : studio
+    Modality "0..1" <-- "0..*" TimetableSlot : modality
 ```

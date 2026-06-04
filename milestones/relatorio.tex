@@ -1,0 +1,1394 @@
+\documentclass[12pt,a4paper]{report}
+
+% --- Encoding / language ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+
+% --- Page layout ---
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+% --- Graphics / floats ---
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[table]{xcolor}
+\usepackage{amsmath} 
+
+% --- Tables ---
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+
+% --- Lists ---
+\usepackage{enumitem}
+
+% --- DEFINIÇÃO DE CORES PARA STATUS (RAG) ---
+\definecolor{statusred}{RGB}{220, 53, 69}
+\definecolor{statusgreen}{RGB}{40, 167, 69}
+\definecolor{statusamber}{RGB}{255, 193, 7}
+\definecolor{headerblue}{RGB}{0, 51, 102}
+
+% --- CONFIGURAÇÃO DE LINKS ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=headerblue,
+}
+
+\begin{document}
+
+% =========================
+% Capa
+% =========================
+\begin{titlepage}
+  \centering
+
+  \vspace*{1cm}
+
+  % Logos (Ajustar caminhos conforme necessário)
+  \includegraphics[height=2.2cm]{./assets/logos/image1.png}\hspace{1cm}
+  \includegraphics[height=2.2cm]{./assets/logos/image2.jpeg}
+
+  \vfill
+
+  {\LARGE \textbf{Relatório de Análise de Requisitos e Modelação}\par}
+  \vspace{0.5cm}
+  {\Large (Milestone 1) \textbf{Escola Entartes}\par}
+  \vspace{0.5cm}
+  {\Large Projeto 50+10\par}
+
+  \vspace{1cm}
+
+  {\large
+  \textit{Afonso Miguel Carneiro Corte Real - Nº 31500}\\
+  \textit{Alexandre Magalhães Martins Machado - Nº 31499}\\
+  \textit{Fernando Manuel Queirós Pinto Coelho - Nº 31027}\\
+  \textit{Pedro Filipe Martins Andrade - Nº 31497}\\
+  \textit{Rodrigo Henrique Silva Pinheiro - Nº 31502}
+  \par}
+
+  \vspace{1cm}
+
+  {\large \textbf{Unidade Curricular: Projeto de Desenvolvimento de Software}\par}
+  {\large \textbf{Docente: Nuno Rodrigues}\par}
+
+  \vspace{0.5cm}
+  {\large LESI -- Licenciatura em Engenharia de Sistemas Informáticos\par}
+  {\large Ano letivo: 2025/26\par}
+
+  \vspace{0.5cm}
+  {\large \textbf{EST - Escola Superior de Tecnologia}\par}
+  {\large \textbf{IPCA - Instituto Politécnico do Cávado e do Ave}\par}
+
+  \vfill
+\end{titlepage}
+
+\tableofcontents
+
+\newpage
+
+\listoffigures
+
+\newpage
+
+% =========================
+% Introdução
+% =========================
+\chapter{Introdução ao Problema}
+
+\section{Contexto Global}
+A Escola Entartes conta atualmente com 400 alunos e 51 turmas. O seu funcionamento baseia-se em aulas de duração variável (30 a 120 minutos) e em diversos formatos, desde o ensino particular a \textit{ensembles} de 4 a 8 alunos. A escola dispõe de 8 estúdios que necessitam de uma gestão otimizada, sendo que nem todas as modalidades são compatíveis com todos os espaços, o que acrescenta complexidade à coordenação interna.
+
+\section{Descrição do Problema}
+O principal desafio reside na gestão manual de horários e na rentabilização dos espaços, de forma a garantir que nenhum estúdio fique desocupado. Atualmente, o registo dos \textit{coachings} é feito manualmente em folhas de Excel, um processo moroso e propenso a erros. A logística associada ao agendamento de sessões de \textit{coaching} --- iniciadas tanto por alunos como por professores --- é igualmente feita de forma manual: para cada marcação, é necessário verificar individualmente a disponibilidade dos estúdios e dos professores, analisar os horários em vigor e confirmar se a combinação é viável --- um processo demorado que sobrecarrega a gestão. Adicionalmente, a comunicação interna é feita através de dezenas de grupos de WhatsApp, tornando a distribuição de notificações e avisos dispersa, inconsistente e difícil de gerir. Por fim, existe uma vasta quantidade de figurinos e acessórios armazenados sem organização digital, o que dificulta a sua reutilização por parte da comunidade escolar.
+
+\section{Motivação}
+A implementação desta plataforma Web visa centralizar e automatizar os processos críticos da escola. No que diz respeito aos \textit{coachings}, pretende-se substituir o registo manual em Excel por um sistema estruturado que permita a alunos e professores submeter pedidos de marcação, com verificação automática de disponibilidade de estúdios e professores, e um fluxo de dupla validação que garanta consistência. A plataforma introduz ainda um sistema de notificações centralizado, eliminando a dependência de grupos de WhatsApp e garantindo que cada utilizador recebe apenas as comunicações relevantes. A motivação estende-se ainda à criação de um marketplace para promover a sustentabilidade e eficiência na gestão de materiais da comunidade escolar.
+
+% =========================
+% Stakeholders e Casos de Uso
+% =========================
+\chapter{Análise de Requisitos: Stakeholders e Casos de Uso}
+
+Neste capítulo, identificamos os intervenientes do sistema e as funcionalidades principais que a plataforma deve oferecer para satisfazer as necessidades da Escola Entartes.
+
+\section{Stakeholders e Atores do Sistema}
+Os stakeholders foram divididos de acordo com as suas responsabilidades e permissões dentro da plataforma:
+
+\begin{itemize}
+    \item \textbf{Administrador (Direção/Coordenação):} Responsável pela supervisão global. Valida marcações de coaching, gere o inventário da escola e exporta dados financeiros para a contabilidade.
+    \item \textbf{Professor:} Gere a sua própria disponibilidade semanal. É responsável por registar sumários de aulas, pode submeter pedidos de marcação de sessões de \textit{coaching} e pode requisitar materiais do inventário.
+    \item \textbf{Utilizador (Aluno/Encarregado):} Ator que representa o beneficiário das aulas. Este perfil unificado é responsável por marcar coachings, visualizar horários e interagir com o inventário.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{@{}l|X|l@{}}
+\toprule
+\rowcolor{headerblue} 
+\textbf{\textcolor{white}{Stakeholder}} & \textbf{\textcolor{white}{Responsabilidades e Interações}} & \textbf{\textcolor{white}{Impacto}} \\ \midrule
+\textbf{Administrador} & Gere a validação de coachings, o inventário global e a exportação de dados para a contabilidade. & Crítico \\ \midrule
+\textbf{Professor} & Define a sua disponibilidade semanal, pode marcar sessões de \textit{coaching} e requisitar materiais do inventário. & Alto \\ \midrule
+\textbf{Utilizador (Aluno/Encarregado)} & Representa o beneficiário das aulas. Responsável por marcar coachings, visualizar horários e interagir com o inventário. & Muito Alto \\ \bottomrule
+\end{tabularx}
+\caption{Identificação e Responsabilidades dos Stakeholders}
+\label{tab:stakeholders}
+\end{table}
+
+\vspace{0.5cm}
+\textbf{Nota Importante:} Por decisão estratégica e requisito da cliente, o sistema trata Pais e Alunos como uma entidade técnica única ("Utilizador"), simplificando o modelo de permissões e a gestão de contas na plataforma.
+
+\section{Diagrama de Casos de Uso}
+
+O diagrama de casos de uso da plataforma gestArtes define o comportamento funcional do sistema através de três pacotes modulares: \textit{Coaching}, \textit{Management and Administration} e \textit{Inventory \& Marketplace}. O sistema foca-se na interação direta entre os três atores principais para automatizar a operação da escola.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/UC.png}
+    \caption{Diagrama de Casos de Uso — Plataforma gestArtes}
+    \label{fig:use_case_diagram}
+\end{figure}
+
+\subsection{Atores do Sistema}
+\begin{itemize}
+    \item \textbf{School Management (Administrador):} Responsável pela supervisão, auditoria e gestão de infraestruturas.
+    \item \textbf{Teacher (Professor):} Responsável pela gestão da sua atividade letiva e submissão de disponibilidades. Pode também submeter pedidos de marcação de sessões de \textit{coaching}.
+    \item \textbf{Parent/Student (Utilizador):} Ator unificado que centraliza as interações de agendamento e consumo de serviços da escola.
+\end{itemize}
+
+\subsection{Detalhamento Funcional por Pacote}
+
+\subsubsection{Módulo: Coaching}
+Este é o núcleo operacional da aplicação, focado na gestão das sessões de \textit{coaching} e rentabilização de espaços.
+\begin{itemize}
+    \item \textbf{Iniciação de Sessão:} O caso de uso \textit{Create Coaching Initiative} representa a criação de uma nova proposta de sessão por um Aluno ou Professor, enquanto \textit{Request Coaching Session} concretiza o pedido formal de marcação, suportado pela validação obrigatória de \textit{Verify Teacher's Availability} e \textit{Verify Studio Availability}.
+    \item \textbf{Adesão a Sessões Existentes:} O caso de uso \textit{Join Existing Coaching Session} permite que um aluno solicite entrar numa sessão já agendada, sujeito a aprovação do professor e da gestão.
+    \item \textbf{Aprovação Administrativa:} O caso de uso \textit{Approve Coaching Request (48h)} assegura que a gestão aprova ou rejeita cada pedido dentro do prazo de 48 horas estipulado (BR-15).
+    \item \textbf{Regras Financeiras:} Inclui automatismos para \textit{Apply No-Show Charge} (cobrança de faltas sem aviso prévio) e \textit{Apply Extra-Hour Fee} (taxas para horários fora do período padrão).
+    \item \textbf{Conclusão de Aula:} O processo fecha com \textit{Validate Session Completion}, desencadeado após a confirmação de execução por parte do professor ou aluno e auditoria final pela gestão, culminando na atualização da tabela contabilística.
+\end{itemize}
+
+\subsubsection{Módulo: Management and Administration}
+Focado em tarefas de \textit{back-office} e comunicação institucional.
+\begin{itemize}
+    \item \textbf{Gestão de Recursos:} Envolve \textit{Manage Studio} e \textit{Manage School Schedule} para a organização anual dos espaços e horários.
+    \item \textbf{Output Financeiro:} O caso de uso \textit{Export Billing Summary} gera o resumo financeiro exportável para a contabilidade.
+    \item \textbf{Comunicação:} \textit{Create Events / Notifications} gere o \textit{feed} de avisos e eventos para a comunidade escolar.
+\end{itemize}
+
+\subsubsection{Módulo: Inventory \& Marketplace}
+Gere o espólio da escola e as transações entre utilizadores, cobrindo tanto o inventário oficial como o marketplace comunitário.
+\begin{itemize}
+    \item \textbf{Ciclo de Vida do Item:} Permite \textit{Add Item} e \textit{Browse Items} para todos os utilizadores, abrangendo tanto itens do inventário escolar como anúncios do marketplace.
+    \item \textbf{Transações:} O utilizador pode \textit{Request Item} (aluguer ou compra), sujeito ao caso de uso \textit{Validate Item Request} pela administração, garantindo a qualidade e o cumprimento dos prazos acordados.
+\end{itemize}
+
+
+% =========================
+% Backlog do Produto
+% =========================
+\chapter{Backlog do Produto}
+
+A gestão do projeto e o levantamento de requisitos são suportados por metodologias ágeis, com o planeamento centralizado no GitHub Projects. Esta secção detalha as histórias de utilizador (User Stories) definidas para o sistema gestArtes.
+
+\section{User Stories (Requisitos Funcionais)}
+
+As User Stories foram redigidas para mapear o valor entregue aos diferentes intervenientes da comunidade escolar, unificando a experiência de alunos e encarregados de educação quando aplicável.
+
+\subsection{Síntese por Perfil de Utilizador}
+\begin{itemize}
+    \item \textbf{Encarregado de Educação:} Como Pai/EE, quero visualizar as vagas disponíveis de professores e estúdios para poder marcar facilmente uma sessão de coaching para o meu educando.
+    \item \textbf{Professor:} Como Professor, quero definir a minha disponibilidade e confirmar a conclusão de aulas para que o meu pagamento e o uso dos estúdios sejam registados corretamente.
+    \item \textbf{Administrador:} Como Administrador, quero validar os pedidos de coaching num prazo de 48h para garantir que não ocorrem conflitos de agendamento.
+\end{itemize}
+
+\subsection{Backlog Detalhado de User Stories}
+
+\begin{longtable}{@{}p{0.10\textwidth} | p{0.125\textwidth} | p{0.74\textwidth}@{}}
+\toprule
+\rowcolor{headerblue}
+\textbf{\textcolor{white}{ID}} & \textbf{\textcolor{white}{Prioridade}} & \textbf{\textcolor{white}{Descrição e Propósito}} \\ \midrule
+\endfirsthead
+
+\toprule
+\rowcolor{headerblue}
+\textbf{\textcolor{white}{ID}} & \textbf{\textcolor{white}{Prioridade}} & \textbf{\textcolor{white}{Descrição e Propósito}} \\ \midrule
+\endhead
+
+\textbf{US-01} & P1 & \textbf{Como} Professor, \textbf{quero} criar uma iniciativa de coaching (datas, estúdio, capacidade, custo), \textbf{para que} possa submetê-la a aprovação e oferecer sessões estruturadas. \\ \midrule
+
+\textbf{US-02} & P1 & \textbf{Como} Administração, \textbf{quero} aprovar ou rejeitar um pedido de sessão de coaching, \textbf{para que} apenas sessões validadas fiquem disponíveis para os alunos. \\ \midrule
+
+\textbf{US-03} & P1 & \textbf{Como} Aluno, \textbf{quero} solicitar uma sessão de coaching, \textbf{para que} possa participar em treinos adicionais respeitando as restrições de disponibilidade. \\ \midrule
+
+\textbf{US-04} & P1 & \textbf{Como} Professor ou Aluno, \textbf{quero} confirmar que uma sessão se realizou, \textbf{para que} possa ser validada e processada financeiramente pela Gestão. \\ \midrule
+
+\textbf{US-05} & P1 & \textbf{Como} Aluno, \textbf{quero} navegar e alugar itens do inventário digital, \textbf{para que} possa aceder aos recursos necessários para aulas ou espetáculos. \\ \midrule
+
+\textbf{US-06} & P1 & \textbf{Como} Administração, \textbf{quero} adicionar figurinos da escola ao Inventário Digital, \textbf{para que} possam ser alugados pela comunidade por uma taxa simbólica. \\ \midrule
+
+\textbf{US-07} & P1 & \textbf{Como} Professor, \textbf{quero} visualizar a disponibilidade dos estúdios, \textbf{para que} possa planear ou solicitar sessões de coaching. \\ \midrule
+
+\textbf{US-08} & P1 & \textbf{Como} Professor, \textbf{quero} gerir a minha disponibilidade, \textbf{para que} os alunos apenas possam marcar sessões quando estou livre. \\ \midrule
+
+\textbf{US-09} & P1 & \textbf{Como} Aluno, Professor ou Administração, \textbf{quero} receber notificações sobre coachings e inventário, \textbf{para que} me mantenha informado sobre as atividades do sistema. \\ \midrule
+
+\textbf{US-10} & P1 & \textbf{Como} Aluno, \textbf{quero} cancelar uma sessão agendada com justificação, \textbf{para que} o sistema aplique as regras financeiras e de assiduidade adequadas. \\ \midrule
+
+\textbf{US-11} & P1 & \textbf{Como} Aluno ou Professor, \textbf{quero} ver o meu histórico de participação, \textbf{para que} possa acompanhar sessões passadas e futuras. \\ \midrule
+
+\textbf{US-12} & P1 & \textbf{Como} Administração, \textbf{quero} gerar um resumo financeiro baseado em sessões validadas, \textbf{para que} a contabilidade possa ser executada com precisão. \\ \midrule
+
+\textbf{US-13} & P1 & \textbf{Como} Administração, \textbf{quero} validar a conclusão de sessões, \textbf{para que} apenas sessões oficiais sejam incluídas na faturação. \\ \midrule
+
+\textbf{US-14} & P1 & \textbf{Como} Administração, \textbf{quero} monitorizar e otimizar o uso dos estúdios, \textbf{para que} os recursos da escola sejam alocados eficientemente. \\ \midrule
+
+\textbf{US-15} & P1 & \textbf{Como} Aluno, \textbf{quero} solicitar a adesão a uma sessão existente com vagas, \textbf{para que} possa participar na aula sem exceder o limite do formato. \\ \midrule
+
+\textbf{US-16} & P1 & \textbf{Como} Professor/Administração, \textbf{quero} aprovar/rejeitar a adesão de um aluno a uma sessão, \textbf{para que} apenas alunos validados assistam à aula. \\ \midrule
+
+\textbf{US-17} & P1 & \textbf{Como} Professor ou Aluno, \textbf{quero} listar um item no Marketplace da Comunidade, \textbf{para que} possa vender, alugar ou dar a outros membros da Escola. \\ \midrule
+
+\textbf{US-18} & P1 & \textbf{Como} Administração, \textbf{quero} avaliar e aprovar as submissões de disponibilidade dos professores, \textbf{para que} apenas os slots validados fiquem visíveis e disponíveis para reserva pelos alunos e pais. \\ \bottomrule
+
+\end{longtable}
+
+
+% =========================
+% Regras de Negócio (Business Rules)
+% =========================
+\chapter{Regras de Negócio}
+
+As regras de negócio (BR - \textit{Business Rules}) definem as restrições, políticas e lógicas operacionais da Escola Entartes que o sistema gestArtes tem obrigatoriamente de suportar. Foram categorizadas pelas diferentes áreas de domínio da aplicação.
+
+\section{Contas e Acessos (Accounts \& Access)}
+\begin{itemize}
+    \item \textbf{BR-01:} Cada aluno possui uma única conta no sistema.
+    \item \textbf{BR-02:} Uma conta de Aluno pode ser operada por um Encarregado de Educação/Tutor.
+    \item \textbf{BR-03:} O sistema não faz distinção técnica de permissões entre a utilização do Aluno e do Encarregado de Educação.
+    \item \textbf{BR-04:} O acesso à plataforma exige autenticação obrigatória (\textit{login}).
+\end{itemize}
+
+\section{Restrições de Estúdios e Agendamento (Studio \& Scheduling)}
+\begin{itemize}
+    \item \textbf{BR-05:} Nem todos os tipos de aulas/modalidades são compatíveis com todos os estúdios.
+    \item \textbf{BR-06:} Um estúdio não pode sofrer dupla marcação (\textit{double-booked}).
+    \item \textbf{BR-07:} As sessões de coaching podem ocorrer fora do horário escolar padrão, aplicando-se um preçário ajustado.
+    \item \textbf{BR-08:} As sessões de coaching podem ser agendadas com pouca antecedência (\textit{short notice}).
+    \item \textbf{BR-09:} A disponibilidade do estúdio e do professor deve ser validada antes da aprovação final.
+\end{itemize}
+
+\section{Pedidos de Coaching e Aprovação}
+\begin{itemize}
+    \item \textbf{BR-10 e BR-12:} As sessões de coaching exigem validação da Administração e só são consideradas confirmadas após essa aprovação.
+    \item \textbf{BR-11:} Os pedidos podem ser iniciados tanto pelo Aluno/Encarregado como pelo Professor.
+    \item \textbf{BR-13:} Um aluno pode solicitar a adesão a uma sessão privada já agendada, desde que haja capacidade. Isto exige um fluxo de \textbf{dupla aprovação}: aprovação explícita do Professor atribuído, seguida de validação final da Administração.
+    \item \textbf{BR-14:} É exigido um processo de dupla validação pós-aula: confirmação de conclusão pelo Professor ou Aluno, seguida de validação da finalização pela Administração.
+    \item \textbf{BR-15:} A validação do pedido de coaching tem de ocorrer num prazo máximo de 48 horas.
+\end{itemize}
+
+\section{Assiduidade e Cancelamentos}
+\begin{itemize}
+    \item \textbf{BR-16:} Se um aluno faltar a uma sessão sem aviso prévio (\textit{no-show}), a sessão é cobrada.
+    \item \textbf{BR-17:} O cancelamento de uma aula exige obrigatoriamente a apresentação de uma justificação.
+    \item \textbf{BR-18:} Aplica-se um preçário especial para sessões com professores externos ou fora do horário padrão.
+\end{itemize}
+
+\section{Faturação e Relatórios (Financial \& Reporting)}
+\begin{itemize}
+    \item \textbf{BR-19:} O preço base do coaching é de 36€/hora, sujeito a variações contextuais.
+    \item \textbf{BR-20:} Após a validação (BR-14), os dados da sessão são automaticamente incluídos na tabela resumo financeira.
+    \item \textbf{BR-21:} O sistema gera tabelas de resumo para a contabilidade, mas \textbf{não realiza a faturação direta} nem a emissão de recibos.
+\end{itemize}
+
+\section{Inventário Digital e Marketplace}
+\begin{itemize}
+    \item \textbf{BR-22:} O inventário digital é de uso exclusivo da comunidade escolar interna.
+    \item \textbf{BR-23:} O tipo de transação por defeito para qualquer item é o \textbf{aluguer}.
+    \item \textbf{BR-24:} Alunos e Professores podem adicionar os seus próprios itens ao \textit{Marketplace} da escola.
+    \item \textbf{BR-25:} Os itens pertencentes à Escola apenas podem ser alugados, nunca vendidos.
+    \item \textbf{BR-26:} No aluguer de itens da Escola, o estado de conservação e a data de devolução têm de ser verificados.
+    \item \textbf{BR-27:} Pode ser aplicada uma taxa simbólica à utilização interna de itens.
+\end{itemize}
+
+\section{Restrições Operacionais}
+\begin{itemize}
+    \item \textbf{BR-28:} A ocupação dos estúdios deve ser otimizada para evitar tempos de inatividade desnecessários.
+    \item \textbf{BR-29:} Os professores têm de definir explicitamente a sua disponibilidade no sistema.
+    \item \textbf{BR-30:} Certas modalidades podem envolver mais do que um professor numa só sessão.
+    \item \textbf{BR-31:} As submissões da disponibilidade dos professores devem ser aprovada para Coordenação antes de ficarem visíveis para reserva.
+\end{itemize}
+
+% =========================
+% Requisitos Não Funcionais e Restrições
+% =========================
+\chapter{Requisitos Não Funcionais e Restrições}
+
+Para garantir a qualidade, segurança e viabilidade do sistema gestArtes, foram levantados os requisitos não funcionais (RNF), as restrições tecnológicas e as premissas do projeto. Estes elementos ditam as decisões arquiteturais da equipa de desenvolvimento.
+
+\section{Requisitos Não Funcionais (RNF)}
+Os RNF definem os atributos de qualidade que a plataforma deve exibir. Foram identificados os seguintes requisitos críticos:
+
+\begin{longtable}{@{}p{0.10\textwidth} | p{0.20\textwidth} | p{0.60\textwidth}@{}}
+\toprule
+\rowcolor{headerblue} 
+\textbf{\textcolor{white}{ID}} & \textbf{\textcolor{white}{Categoria}} & \textbf{\textcolor{white}{Descrição}} \\ \midrule
+\endfirsthead
+
+\toprule
+\rowcolor{headerblue} 
+\textbf{\textcolor{white}{ID}} & \textbf{\textcolor{white}{Categoria}} & \textbf{\textcolor{white}{Descrição}} \\ \midrule
+\endhead
+
+\textbf{RNF01} & Usabilidade & A interface deve permitir que os administradores visualizem os professores disponíveis de forma simples e clara, garantindo a privacidade dos dados. \\ \midrule
+\textbf{RNF02} & Usabilidade & \textit{Agendamento Simplificado:} O processo de marcação deve ser rápido e fácil de utilizar através de atalhos rápidos (\textit{Quick Access Actions}). \\ \midrule
+\textbf{RNF03} & Usabilidade & \textit{Acesso a Notificações:} Os eventos e avisos devem estar facilmente acessíveis na página principal da aplicação. \\ \midrule
+\textbf{RNF04} & Segurança & \textit{Acesso Restrito:} O sistema apenas deve ser acessível a utilizadores devidamente autenticados mediante \textit{login}. \\ \midrule
+\textbf{RNF05} & Acessibilidade & A interface da plataforma deve ser acessível a todos os utilizadores, com uma navegação simples e intuitiva. \\ \midrule
+\textbf{RNF06} & Manutenibilidade & O código-fonte deve ser modularizado para facilitar futuras atualizações e a manutenção do software. \\ \midrule
+\textbf{RNF07} & Auditabilidade & O sistema deve manter um registo de auditoria (\textit{audit trail}) para todas as ações críticas (ex: aprovações, cancelamentos, pagamentos). \\ \midrule
+\textbf{RNF08} & Integridade de Dados & O sistema deve garantir a impossibilidade de marcações duplicadas (\textit{double bookings}) de estúdios ou professores através de controlo transacional na base de dados. \\ \bottomrule
+\caption{Requisitos Não Funcionais do Sistema gestArtes}
+\end{longtable}
+
+\section{Restrições do Projeto (Constraints)}
+As restrições representam limitações impostas ao projeto, sejam elas de negócio, de tempo ou de tecnologia:
+
+\begin{itemize}
+    \item \textbf{R01 - Origem dos Dados:} Os dados iniciais dos utilizadores (alunos, pais, professores) são obrigatoriamente fornecidos pela escola.
+    \item \textbf{R02 - Comunicação Externa:} Existe uma dependência de uma plataforma de chat externa para conversas informais mais detalhadas com a escola, visto que a aplicação não implementará um chat interno completo.
+\end{itemize}
+
+\section{Premissas (Assumptions)}
+As premissas são condições assumidas como verdadeiras para a execução e funcionamento do sistema:
+
+\begin{itemize}
+    \item \textbf{PC01 - Conectividade:} Assume-se que existe ligação estável à internet nas áreas de utilização do sistema por parte dos atores.
+    \item \textbf{PC02 - Prazo Académico:} O projeto tem de ser integralmente concluído e entregue dentro dos prazos académicos estipulados para o semestre.
+\end{itemize}
+
+% =========================
+% Modelação de Processos de Negócio (BPMN)
+% =========================
+\chapter{Modelação de Processos de Negócio (BPMN)}
+
+Para a Milestone 1, foram identificados e modelados cinco processos de negócio fundamentais que sustentam a operação da Escola Entartes. Estes processos foram desenhados para garantir o rigor contabilístico, a transparência na comunicação e a otimização dos recursos físicos da escola.
+
+\section{PN001 - Reserva de Coaching (Aulas Particulares)}
+Este processo gere o agendamento de sessões individuais ou de grupo restrito, garantindo a compatibilidade de horários entre professores e estúdios.
+
+\begin{itemize}
+    \item \textbf{Atores:} Requerente (Aluno ou Professor) e Administração/Coordenação.
+    \item \textbf{Fluxo Principal:} O processo inicia com a necessidade de coaching. O requerente seleciona a modalidade e propõe um horário. O sistema encaminha o pedido para a gestão, que deve validar a reserva.
+    \item \textbf{Regra Crítica (48h):} Existe um evento de fronteira temporal (\textit{Timer Boundary Event}) associado à tarefa de validação. Caso a administração não valide o pedido num prazo de 48 horas, o processo é automaticamente cancelado para evitar incertezas no agendamento.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/BPMNs/BPMN-01.png}
+    \caption{Diagrama BPMN - Processo de Reserva de Coaching}
+    \label{fig:pn001}
+\end{figure}
+
+\section{PN002 — Ciclo de Validação Pós-Aula}
+
+Este processo garante que apenas aulas efetivamente realizadas transitam para
+faturação, através de um modelo de confirmação em dois estágios sequenciais (BR-14).
+
+\begin{itemize}
+    \item \textbf{Atores:} Professor, Aluno (ou Encarregado de Educação) e Gestão.
+    \item \textbf{Confirmação inicial:} Após a conclusão da aula, o sistema aguarda
+    a confirmação de execução por parte de um dos dois atores diretos — Professor
+    ou Aluno/Encarregado. O \textit{gateway} exclusivo (XOR) \textit{``Who Confirms?''}
+    determina qual dos dois inicia o processo, sendo ambos os caminhos válidos e
+    equivalentes para efeitos de progressão do fluxo.
+    \item \textbf{Auditoria final:} Após a confirmação inicial, o processo transita
+    para a \textit{lane} de Gestão, onde é realizada a auditoria final
+    (\textit{Final Management Audit}). Esta etapa verifica a coerência entre a
+    confirmação recebida e os registos da sessão antes de autorizar a faturação.
+    \item \textbf{Resultado:} Uma vez concluída a auditoria, a sessão transita para
+    o estado \textit{Ready for Invoicing}, despoletando automaticamente a geração
+    de uma entrada em \textit{FinancialEntry} na tabela contabilística (BR-20).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/BPMNs/BPMN-02.png}
+    \caption{Diagrama BPMN - Ciclo de Validação Pós-Aula}
+    \label{fig:pn002}
+\end{figure}
+
+
+\section{PN003 - Aluguer de Inventário Digital (Escola)}
+Este processo visa a rentabilização de figurinos e acessórios pertencentes ao espólio da escola.
+
+\begin{itemize}
+    \item \textbf{Atores:} Interessado (EE/Aluno) e Dono do Artigo (neste caso, a Escola).
+    \item \textbf{Fluxo Principal:} O interessado pesquisa o catálogo e expressa interesse num artigo. A escola analisa o pedido e define os termos (data de entrega e qualidade).
+    \item \textbf{Pagamento:} O processo culmina no pagamento de uma taxa simbólica via gateway externo ou numerário, resultando na aquisição temporária do item.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/BPMNs/BPMN-03.png}
+    \caption{Diagrama BPMN - Aluguer de Inventário Escola}
+    \label{fig:pn003}
+\end{figure}
+
+\section{PN004 - Configuração de Disponibilidade Docente}
+Processo de configuração inicial que ocorre no arranque do ano letivo ou semestre.
+
+\begin{itemize}
+    \item \textbf{Atores:} Professor e Gestão.
+    \item \textbf{Fluxo Principal:} Cada professor submete os seus \textit{slots} de disponibilidade semanal. A gestão audita estes horários cruzando-os com o mapa de ocupação dos 8 estúdios disponíveis.
+    \item \textbf{Publicação:} Após a validação global, as vagas ficam visíveis na aplicação para que os Encarregados de Educação e Alunos possam efetuar marcações de forma intuitiva.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/BPMNs/BPMN-04.png}
+    \caption{Diagrama BPMN - Configuração de Disponibilidade}
+    \label{fig:pn004}
+\end{figure}
+
+\section{PN005 - Mercado da Comunidade (Peer-to-Peer)}
+Funcionalidade que permite a troca ou venda de materiais entre os próprios membros da comunidade escolar.
+
+\begin{itemize}
+    \item \textbf{Atores:} Interessado e Dono do Artigo (Aluno/Encarregado).
+    \item \textbf{Fluxo Principal:} Um membro da comunidade demonstra interesse num artigo listado por outro. É iniciado um contacto para negociação de termos.
+    \item \textbf{Conclusão:} Uma vez aceites os termos, o pagamento é realizado externamente ao sistema, e a transação é marcada como concluída para atualizar o estado do inventário digital.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/BPMNs/BPMN-05.png}
+    \caption{Diagrama BPMN - Mercado da Comunidade}
+    \label{fig:pn005}
+\end{figure}
+
+% =========================
+% Modelação Estrutural
+% =========================
+\chapter{Modelação Estrutural}
+
+\section{Diagrama Entidade-Relação}
+
+O diagrama entidade-relação detalha o esquema lógico da base de dados, utilizando o modelo relacional para mapear as entidades do domínio da Escola Entartes. A estrutura foi normalizada até à Terceira Forma Normal (3FN) para eliminar redundâncias e prevenir anomalias de atualização. O modelo implementado é composto por 56 tabelas (modelos Prisma), organizadas em cinco áreas funcionais coesas. \textit{(Nota: o ERD inicial da Milestone 1 contemplava 38 tabelas; durante o desenvolvimento o esquema cresceu para 56 com a introdução do fluxo de negociação de pedidos de coaching --- \textbf{CoachingRequest}, \textbf{CoachingRequestAction}, \textbf{GroupCoachingProposal}, \textbf{GroupCoachingParticipant} ---, dos horários geridos pela administração --- \textbf{Timetable}, \textbf{TimetableSlot} ---, do bloqueio de modalidades por aluno --- \textbf{StudentAllowedModality} ---, da auditoria em base de dados --- \textbf{AuditLog} ---, e dos \textit{refresh tokens} JWT --- \textbf{RefreshToken}. A figura do ERD deve ser regenerada para refletir estas tabelas.)}
+
+\subsubsection{Identidade e Controlo de Acessos}
+A arquitetura de dados adota um modelo de identidade centralizado para cumprir as regras de negócio de conta unificada (BR-01 e BR-03):
+\begin{itemize}
+    \item \textbf{User:} Entidade soberana para autenticação. Armazena credenciais (\textit{PasswordHash}, \textit{AuthUID}), dados de contacto e metadados de auditoria (\textit{CreatedAt}, \textit{UpdatedAt}, \textit{DeletedAt}). Os atributos \textit{Email} e \textit{AuthUID} têm restrição \textit{UNIQUE}, prevenindo duplicação de contas. O atributo \textit{IsActive} em conjunto com \textit{DeletedAt} suporta o padrão de \textit{soft delete}.
+    \item \textbf{Role:} Tabela de domínio que define os perfis de permissão do sistema, permitindo a implementação de políticas \textit{RBAC (Role-Based Access Control)}. A restrição \textit{UNIQUE} em \textit{RoleName} previne a criação de perfis duplicados.
+    \item \textbf{StudentAccount:} Extensão com relação 1:1 com \textit{User}, garantida pelo atributo \textit{UNIQUE} em \textit{UserID}. Armazena a \textit{BirthDate} necessária para validação de maioridade, mantendo o modelo de \textit{User} genérico e não contaminado por dados específicos do corpo discente.
+\end{itemize}
+
+\subsubsection{Agendamento e Gestão de Sessões}
+O motor de agendamento assenta na relação entre recursos físicos, capital humano e modalidades de ensino:
+\begin{itemize}
+    \item \textbf{CoachingSession:} Entidade transacional central. Relaciona-se com \textit{Studio} e \textit{Modality} por chaves estrangeiras, e com \textit{User} via \textit{RequestedByUserID}, registando quem submeteu o pedido (BR-11). Os atributos \textit{IsExternal} e \textit{IsOutsideStdHours} permitem ao sistema aplicar automaticamente os preçários diferenciados das regras BR-18 e BR-07. O \textit{StatusID} referencia \textit{SessionStatus}, servindo de gatilho para a máquina de estados comportamental.
+    \item \textbf{SessionTeacher} e \textbf{SessionStudent:} Tabelas de junção N:M que associam professores e alunos a cada sessão. \textit{SessionTeacher} inclui o atributo \textit{AssignmentRoleID} (referenciando \textit{TeacherAssignmentRole}) para distinguir o professor titular de assistentes, suportando a BR-30. \textit{SessionStudent} regista o \textit{EnrolledAt} e o \textit{AttendanceStatusID}, este último essencial para a aplicação da penalização de \textit{no-show} (BR-16).
+    \item \textbf{CoachingJoinRequest:} Regista os pedidos de adesão de alunos a sessões existentes (US-15 e US-16), com estado próprio referenciando \textit{CoachingJoinRequestStatus} e rastreabilidade de quem reviu o pedido e quando.
+    \item \textbf{CoachingRequest} e \textbf{CoachingRequestAction:} Suportam o fluxo de \textit{negociação} de pedidos de coaching iniciados pelo aluno. \textit{CoachingRequest} guarda os horários preferido/atual/sugerido e o \textit{Status} textual do \textit{workflow} (ex.: \textit{PENDING\_TEACHER\_REVIEW}, \textit{PENDING\_STUDENT\_CONFIRMATION}, \textit{PENDING\_ADMIN\_APPROVAL}, \textit{APPROVED}), ligando-se à \textit{CoachingSession} confirmada via \textit{ConfirmedSessionID}. \textit{CoachingRequestAction} regista o histórico auditável de cada ação (professor sugere novo horário, aluno aceita, administração valida).
+    \item \textbf{GroupCoachingProposal} e \textbf{GroupCoachingParticipant:} Modelam propostas de coaching de grupo iniciadas pelo professor, agrupando vários alunos numa única sessão. Após aprovação da administração, originam uma \textit{CoachingSession} e os respetivos \textit{SessionStudent}.
+    \item \textbf{SessionValidation:} Persiste o registo auditável de cada etapa de validação da sessão, através de \textit{ValidationStepID} (referenciando \textit{ValidationStep}), identificando quem validou e em que momento — suportando o modelo de dupla confirmação da BR-14.
+    \item \textbf{Modality}, \textbf{StudioModality} e \textbf{TeacherModality:} Triplo de entidades que codifica as compatibilidades do sistema. \textit{StudioModality} aplica a BR-05 (nem todos os estúdios suportam todas as modalidades) e \textit{TeacherModality} garante que o sistema só permite atribuir um professor a sessões de modalidades que efetivamente leciona.
+    \item \textbf{TeacherAvailability} e \textbf{TeacherAbsence:} Modelam, respetivamente, os \textit{slots} de disponibilidade semanal recorrente (BR-29) e os períodos de ausência pontuais de cada professor, bloqueando marcações em períodos indisponíveis.
+    \item \textbf{Studio:} Define as restrições físicas da escola com o atributo \textit{Capacity}, permitindo validar a regra BR-06 (impedimento de \textit{double-booking}) ao nível da base de dados.
+\end{itemize}
+
+\subsubsection{Gestão Financeira e Contabilística}
+As entidades financeiras garantem rastreabilidade completa desde a sessão até à exportação contabilística (BR-20):
+\begin{itemize}
+    \item \textbf{FinancialEntry:} Gerada após a validação de uma sessão, regista o montante (\textit{Amount} em \textit{decimal(10,2)}), o tipo de entrada via \textit{FinancialEntryType} (sessão, penalização, cancelamento) e a referência ao \textit{FinancialSummaryID} a que pertence. Os atributos \textit{IsExported} e \textit{ExportedByUserID} garantem rastreabilidade do processo de exportação.
+    \item \textbf{FinancialSummary:} Agrega um conjunto de \textit{FinancialEntry} num período definido por \textit{PeriodStart} e \textit{PeriodEnd}. Relaciona-se com \textit{User} (\textit{GeneratedByUserID}) e opcionalmente com \textit{AcademicYear}, suportando tanto resumos periódicos como resumos ad-hoc.
+\end{itemize}
+
+\subsubsection{Inventário e Marketplace}
+O modelo separa claramente o inventário oficial da escola das transações entre membros da comunidade:
+\begin{itemize}
+    \item \textbf{InventoryItem:} Representa itens pertencentes à escola ou a utilizadores, classificados por \textit{ItemCategory}. O atributo \textit{IsSchoolOwned} distingue o património escolar dos itens de utilizadores, aplicando a BR-25. O \textit{SymbolicFee} suporta a taxa simbólica de aluguer (BR-27).
+    \item \textbf{InventoryTransaction:} Regista alugueres de itens do inventário oficial. Os atributos \textit{ConditionChecked} e \textit{ReturnVerified} cumprem a exigência de verificação de estado na entrega e devolução (BR-26).
+    \item \textbf{MarketplaceItem} e \textbf{MarketplaceTransaction:} Suportam as trocas \textit{peer-to-peer} entre membros da comunidade (BR-24). \textit{MarketplaceItem} referencia \textit{MarketplaceItemCondition} e \textit{MarketplaceItemStatus} para catalogação rigorosa do estado de conservação e disponibilidade. \textit{MarketplaceTransaction} regista o comprador, o método de pagamento e a data da transação.
+\end{itemize}
+
+\subsubsection{Operação Escolar e Comunicação}
+As restantes entidades suportam a operação diária da escola e a comunicação com a comunidade:
+\begin{itemize}
+    \item \textbf{AcademicYear:} Ancora temporalmente eventos e horários escolares, com \textit{IsActive} a identificar o ano letivo em curso. Serve de referência para \textit{SchoolEvent}, \textit{SchoolSchedule} e \textit{FinancialSummary}.
+    \item \textbf{SchoolEvent:} Regista eventos escolares com controlo de audiência via \textit{AudienceScope} e ciclo de vida próprio gerido por \textit{SchoolEventStatus}.
+    \item \textbf{SchoolSchedule:} Representa entradas do horário escolar, opcionalmente associadas a um estúdio específico, com estado gerido por \textit{SchoolScheduleStatus}.
+    \item \textbf{Notification:} Suporta o sistema centralizado de notificações (US-09), associando cada notificação a um \textit{User}, a um \textit{NotificationType} e opcionalmente a uma \textit{CoachingSession} via \textit{SessionID nullable}, permitindo contextualizar alertas de agendamento.
+    \item \textbf{LostAndFoundItem:} Regista objetos perdidos e achados nas instalações, com \textit{RegisteredByUserID} a garantir rastreabilidade de quem efetuou o registo.
+    \item \textbf{Timetable} e \textbf{TimetableSlot:} Mapas de horário semanal editáveis e geridos pela administração. \textit{TimetableSlot} associa cada bloco (\textit{DayOfWeek}, \textit{StartMinutes}, \textit{EndMinutes}) opcionalmente a um professor, estúdio e modalidade, sendo consultáveis por todos os perfis.
+    \item \textbf{StudentAllowedModality:} Tabela de junção que restringe (quando \textit{IsModalityLocked} está ativo em \textit{StudentAccount}) as modalidades que um aluno pode marcar.
+    \item \textbf{AuditLog} e \textbf{RefreshToken:} Suportam, respetivamente, o registo de auditoria em base de dados (RNF07) e a rotação segura de \textit{refresh tokens} JWT (\textit{TokenJti}, \textit{TokenHash}, \textit{RevokedAt}).
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/ERD.png}
+    \caption{Diagrama Entidade-Relação — gestArtes}
+    \label{fig:erd_diagram}
+\end{figure}
+
+
+
+\section{Diagrama de Classes}
+
+O diagrama de classes apresentado nesta secção foi \textbf{revisto para refletir a
+estrutura efetivamente implementada} do sistema gestArtes. A aplicação não adota um
+modelo de domínio orientado a objetos com herança de perfis e \textit{value objects};
+segue, ao invés, uma \textbf{arquitetura em camadas de matriz procedural}, composta
+por \textit{routers} Express, \textit{controllers} (responsáveis pelo IO HTTP e pela
+serialização das respostas), uma camada de serviços e de \textit{use-cases} (que
+concentra a lógica de negócio, construída por \textit{factories} com injeção de
+dependências) e o ORM \textbf{Prisma} sobre \textbf{SQL Server}. O controlo de acessos
+(RBAC) é aplicado por \textit{middlewares} (\textit{requireAuth}, \textit{requireRole},
+\textit{requirePermission}).
+
+Em consequência, as classes do diagrama \textbf{correspondem 1:1 aos modelos de
+persistência} (modelos Prisma) e os métodos listados em cada classe representam as
+funções de \textit{controller}, serviço ou \textit{use-case} que operam sobre essa
+entidade. \textbf{Não foram implementadas} a classe abstrata \textit{UserProfile} nem
+as subclasses \textit{StudentProfile}/\textit{TeacherProfile}/\textit{ManagementProfile},
+nem os \textit{value objects} \textit{Money}, \textit{TimeSlot} ou \textit{DateRange},
+nem as classes de associação \textit{Enrollment}, \textit{SessionTeacherAssignment},
+\textit{ValidationRecord}, \textit{EventParticipation} ou \textit{Format}: essas
+responsabilidades concretizam-se como funções simples e colunas Prisma/SQL. A
+Tabela~\ref{tab:classmapping} resume o mapeamento entre o modelo conceptual da
+Milestone~1 e a implementação real.
+
+\subsection{Identidade e Controlo de Acessos}
+\begin{itemize}
+    \item \textbf{User:} Modelo central de identidade, partilhado por todos os
+    perfis. Armazena os dados de contacto, \textit{PasswordHash}, \textit{AuthUID},
+    \textit{IsActive}/\textit{DeletedAt} (\textit{soft delete}) e os
+    \textit{timestamps} de auditoria. As operações de autenticação ---
+    \textit{login()}, \textit{refresh()}, \textit{logout()}, \textit{logoutAll()},
+    \textit{me()} e \textit{switchRole()} --- residem no \textit{auth.controller};
+    \textit{updateProfile()} e \textit{changePassword()} são implementadas nos
+    \textit{controllers} de aluno e de professor.
+
+    \item \textbf{Role} e \textbf{UserRole:} \textit{Role} define os perfis de
+    permissão (RBAC) e \textit{UserRole} é a tabela de junção N:M que permite a um
+    utilizador acumular vários papéis em simultâneo (ex.: aluno e professor).
+
+    \item \textbf{RefreshToken:} Persiste os \textit{refresh tokens} JWT
+    (\textit{TokenJti}, \textit{TokenHash}, \textit{ExpiresAt}, \textit{RevokedAt}),
+    suportando a rotação segura de sessões e a revogação em massa
+    (\textit{revokeAllRefreshTokensForUser}).
+
+    \item \textbf{StudentAccount:} Extensão 1:1 de \textit{User} para o corpo
+    discente, com \textit{BirthDate}, dados do encarregado e \textit{IsModalityLocked}.
+    Expõe \textit{getProfile()}, \textit{getDashboard()} e
+    \textit{getUpcomingSchedule()} (no \textit{student.controller}) e
+    \textit{getSessionHistory()} (no \textit{coaching.controller}).
+
+    \item \textbf{StudentAllowedModality:} Tabela de junção que restringe, quando
+    \textit{IsModalityLocked} está ativo, o conjunto de modalidades que o aluno
+    pode marcar.
+\end{itemize}
+
+\subsection{Disponibilidade e Ausências dos Professores}
+\begin{itemize}
+    \item \textbf{TeacherAvailability:} Pedido de disponibilidade submetido pelo
+    professor, com estado próprio (\textit{TeacherAvailabilityStatus}) e
+    rastreabilidade de revisão. Especializa-se em
+    \textbf{TeacherAvailabilityRecurring} (\textit{slots} semanais por
+    \textit{DayOfWeek}/\textit{StartTime}/\textit{EndTime}) e
+    \textbf{TeacherAvailabilityPunctual} (intervalos pontuais). As operações
+    --- \textit{submitTeacherAvailability()}, \textit{listTeacherAvailability()},
+    \textit{updateTeacherAvailability()}, \textit{cancelTeacherAvailability()},
+    \textit{createTeacherException()}, \textit{listAdminPendingAvailability()},
+    \textit{approveAvailability()} e \textit{rejectAvailability()} --- residem no
+    \textit{availability.controller} (com \textit{use-cases} de submissão e revisão).
+
+    \item \textbf{TeacherAbsence:} Regista ausências pontuais do professor com um
+    intervalo (\textit{StartDate}/\textit{EndDate}), motivo e estado de revisão
+    (\textit{TeacherAbsenceStatus}).
+\end{itemize}
+
+\subsection{Agendamento e Sessões de Coaching}
+\begin{itemize}
+    \item \textbf{CoachingSession:} Modelo transacional central. Guarda o estado
+    (\textit{StatusID} → \textit{SessionStatus}), o \textit{FinalPrice} (decimal) e
+    os \textit{flags} \textit{IsExternal} e \textit{IsOutsideStdHours} que
+    condicionam o preçário. As operações de ciclo de vida ---
+    \textit{getAvailableSlots()}, \textit{createSession()} (professor),
+    \textit{createBooking()},
+    \textit{confirmCompletion(sessionId, studentUserId)},
+    \textit{cancelBooking(sessionId, studentUserId, justification)},
+    \textit{registerNoShow()}, \textit{getSessionHistory()} e
+    \textit{getWeeklyMap()} --- distribuem-se entre o \textit{coaching.controller}/
+    \textit{coaching.service} e o \textit{teacher.controller}.
+
+    \item \textbf{SessionTeacher:} Junção N:M entre \textit{CoachingSession} e
+    \textit{User} (professor), com \textit{AssignmentRoleID}
+    (\textit{TeacherAssignmentRole}) para distinguir o titular dos assistentes
+    (BR-30). Uma sessão requer pelo menos um professor.
+
+    \item \textbf{SessionStudent:} Junção entre \textit{CoachingSession} e
+    \textit{StudentAccount}, com \textit{EnrolledAt} e \textit{AttendanceStatusID}
+    (\textit{AttendanceStatus}), essencial à penalização de \textit{no-show}
+    (BR-16).
+
+    \item \textbf{SessionValidation} e \textbf{ValidationStep:} Persistem o registo
+    auditável de cada confirmação. Os passos efetivamente seedados são
+    \textit{TeacherConfirmation}, \textit{StudentConfirmation} e
+    \textit{AdminFinalValidation}, suportando a dupla validação da BR-14.
+
+    \item \textbf{CoachingJoinRequest:} Pedido de adesão de um aluno a uma sessão
+    existente (US-15/US-16), com fluxo de dupla aprovação. Operações no
+    \textit{joinRequest.controller}: \textit{createJoinRequest()},
+    \textit{getTeacherPending()}, \textit{teacherApprove()},
+    \textit{teacherReject()}, \textit{getAdminPending()}, \textit{adminApprove()},
+    \textit{adminReject()}, \textit{getStudentRequests()} e
+    \textit{cancelJoinRequest()}. Na aprovação dupla, cria automaticamente o
+    \textit{SessionStudent}.
+
+    \item \textbf{CoachingRequest} e \textbf{CoachingRequestAction:} Suportam o
+    fluxo de negociação de pedidos (\textit{createRequest()},
+    \textit{reviewRequestAsTeacher()} --- que pode sugerir novo horário ---,
+    \textit{respondToTeacherSuggestion()} e \textit{reviewRequestAsAdmin()}),
+    registando cada ação para auditoria.
+
+    \item \textbf{GroupCoachingProposal} e \textbf{GroupCoachingParticipant:}
+    Propostas de grupo iniciadas pelo professor (\textit{searchStudents()},
+    \textit{createProposal()}, \textit{listAdminProposals()},
+    \textit{reviewProposal()}) que, ao serem aprovadas, geram a
+    \textit{CoachingSession} e os respetivos \textit{SessionStudent}.
+
+    \item \textbf{Studio:} Espaços físicos, com \textit{Capacity}. Complementado por
+    \textbf{StudioModality} (compatibilidade modalidade--estúdio, BR-05),
+    \textbf{StudioBlock} (bloqueios temporais) e \textbf{StudioStatusOverride}
+    (estado manual). A verificação de \textit{double-booking} (BR-06) é feita ao
+    nível das consultas de disponibilidade.
+
+    \item \textbf{Modality} e \textbf{TeacherModality:} \textit{Modality} categoriza
+    as modalidades de ensino; \textit{TeacherModality} associa cada professor às
+    modalidades que leciona. Não existe uma classe \textit{Format} autónoma --- o
+    formato (individual/dueto/grupo) é derivado de \textit{MaxParticipants}.
+\end{itemize}
+
+\subsection{Gestão Financeira}
+\begin{itemize}
+    \item \textbf{FinancialEntry} e \textbf{FinancialEntryType:} Cada entrada é
+    gerada pelo \textit{pricing.service} ---
+    \textit{generateFinancialEntryOnFinalization(sessionId, userId)} (tipo
+    \textit{session\_revenue}, na finalização administrativa) e
+    \textit{applyNoShowPenalty(sessionId, userId)} (tipo \textit{no\_show\_fee}). O
+    preço é calculado por \textit{calculateFinalPrice()}, aplicando o multiplicador
+    de horário fora do padrão (1,5×, BR-18). Os campos \textit{IsExported} e
+    \textit{ExportedByUserID} suportam a rastreabilidade da exportação (BR-20).
+
+    \item \textbf{FinancialSummary:} Agrega \textit{FinancialEntry} num período
+    (\textit{PeriodStart}/\textit{PeriodEnd}), associado a um \textit{AcademicYear}.
+    As operações de relatório --- \textit{listTransactions()}, \textit{getSummary()},
+    \textit{getRevenue()} e \textit{exportTransactions()} (CSV) --- residem no
+    \textit{finance.controller}/\textit{finance.service} (US-12, BR-21).
+\end{itemize}
+
+\subsection{Inventário e Marketplace}
+\begin{itemize}
+    \item \textbf{InventoryItem:} Itens do espólio escolar ou de utilizadores, com
+    \textit{IsSchoolOwned} e \textit{SymbolicFee} (BR-25, BR-27). Operações de
+    catálogo (\textit{getItems()}, \textit{getItemById()}) e de gestão
+    administrativa (\textit{createSchoolInventoryItem()}, \ldots) no
+    \textit{inventory.controller}/\textit{admin\_inventory.controller}.
+
+    \item \textbf{InventoryTransaction:} Regista os alugueres, com
+    \textit{ConditionChecked}, \textit{ReturnVerified}, \textit{ApprovalStatus} e
+    notas de devolução (BR-26). O fluxo concretiza-se em \textit{use-cases}:
+    \textit{createRental}, \textit{approveRental}, \textit{verifyReturn} e
+    \textit{rejectReturn}; a consulta do aluno usa
+    \textit{listRentalsByRenterId()} e a do administrador \textit{listAllRentals()}.
+
+    \item \textbf{MarketplaceItem:} Anúncios publicados por utilizadores (BR-24),
+    com \textit{ConditionID}/\textit{StatusID} e moderação administrativa.
+    Operações: \textit{createListing()}, \textit{getListings()},
+    \textit{getListingById()}, \textit{getMyListings()}, \textit{updateListing()} e
+    \textit{deleteListing()} e, no lado administrativo, \textit{approveListing()} e
+    \textit{rejectListing()} (\textit{use-cases}). A negociação e o pagamento
+    ocorrem fora da plataforma.
+
+    \item \textbf{MarketplaceTransaction:} Regista as transações concluídas
+    (comprador, método de pagamento, data).
+
+    \item \textbf{ItemCategory}, \textbf{PaymentMethod},
+    \textbf{MarketplaceItemCondition} e \textbf{MarketplaceItemStatus:} Tabelas de
+    domínio que catalogam categorias, métodos de pagamento, estado de conservação e
+    estado de publicação.
+\end{itemize}
+
+\subsection{Operação Escolar e Comunicação}
+\begin{itemize}
+    \item \textbf{AcademicYear:} Ancora temporalmente horários, eventos e resumos
+    financeiros, com \textit{IsActive} a identificar o ano letivo em curso.
+
+    \item \textbf{Timetable} e \textbf{TimetableSlot:} Horários semanais editáveis
+    geridos pela administração. Operações no \textit{timetable.controller}:
+    \textit{listTimetables()}, \textit{getTimetable()}, \textit{createTimetable()},
+    \textit{updateTimetable()}, \textit{deleteTimetable()}, \textit{createSlot()},
+    \textit{updateSlot()} e \textit{deleteSlot()}.
+
+    \item \textbf{SchoolEvent} e \textbf{SchoolSchedule:} Modelam, respetivamente,
+    eventos escolares (com \textit{AudienceScope} e \textit{SchoolEventStatus}) e
+    entradas de horário escolar (com \textit{SchoolScheduleStatus}), ambos ancorados
+    ao \textit{AcademicYear}. Não existe a classe \textit{EventParticipation} nem
+    \textit{SchoolScheduleEntry} no código --- estas correspondem aos modelos
+    \textit{SchoolEvent} e \textit{SchoolSchedule}.
+
+    \item \textbf{Notification} e \textbf{NotificationType:} Recebida por
+    \textit{User}, categorizada por \textit{NotificationType} e opcionalmente ligada
+    a uma \textit{CoachingSession}. Operações no \textit{notification.controller}:
+    \textit{create()}, \textit{sendNotification()}, \textit{broadcastNotification()},
+    \textit{getAll()}, \textit{getById()}, \textit{markAsRead()} e \textit{remove()};
+    a entrega em tempo real usa \textit{Socket.IO} (US-09).
+
+    \item \textbf{LostAndFoundItem:} Objetos perdidos e achados, com fotografia e
+    \textit{ClaimedStatus}/\textit{IsArchived}. Operações no
+    \textit{lostFound.controller}: \textit{create()}, \textit{listPublic()},
+    \textit{getPublicById()}, \textit{claim()} e \textit{archive()}.
+
+    \item \textbf{AuditLog:} Regista as ações críticas (aprovações, cancelamentos,
+    finalizações, reposições de \textit{password}) com utilizador, módulo, ação e
+    resultado (RNF07).
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{@{}l|X@{}}
+\toprule
+\rowcolor{headerblue}
+\textbf{\textcolor{white}{Modelo conceptual (Milestone 1)}} & \textbf{\textcolor{white}{Implementação real}} \\ \midrule
+\textit{UserProfile} / \textit{StudentProfile} / \textit{TeacherProfile} / \textit{ManagementProfile} & \textit{User} + \textit{UserRole} + \textit{Role} (RBAC por papéis) e \textit{StudentAccount}; sem herança de perfis \\ \midrule
+\textit{Money}, \textit{TimeSlot}, \textit{DateRange} (\textit{value objects}) & Colunas \textit{decimal(10,2)} e \textit{datetime} nos modelos Prisma; lógica em funções \\ \midrule
+\textit{Enrollment} & \textit{SessionStudent} \\ \midrule
+\textit{SessionTeacherAssignment} & \textit{SessionTeacher} \\ \midrule
+\textit{ValidationRecord} & \textit{SessionValidation} + \textit{ValidationStep} \\ \midrule
+\textit{Format} & derivado de \textit{MaxParticipants} (sem tabela) \\ \midrule
+\textit{SchoolScheduleEntry} & \textit{SchoolSchedule} (e \textit{Timetable}/\textit{TimetableSlot}) \\ \midrule
+\textit{EventParticipation} & não implementado \\ \bottomrule
+\end{tabularx}
+\caption{Mapeamento entre o modelo conceptual da Milestone 1 e a implementação}
+\label{tab:classmapping}
+\end{table}
+
+\textbf{Nota:} a figura abaixo (\textit{classdiagram1.png}) ainda representa o modelo
+conceptual orientado a objetos. Deve ser \textbf{regenerada a partir do diagrama
+atualizado} em \textit{diagrams/Class Diagram/classdiagram.md}, que já reflete os 56
+modelos Prisma e as respetivas operações.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/classdiagram1.png}
+    \caption{Diagrama de Classes --- estrutura implementada do gestArtes (regenerar a partir de \textit{classdiagram.md})}
+    \label{fig:class_diagram}
+\end{figure}
+
+
+% =========================
+% Modelação Comportamental
+% =========================
+\chapter{Modelação Comportamental}
+
+A modelação comportamental descreve a dinâmica do sistema gestArtes, focando-se na forma como os objetos interagem e como o fluxo de controlo é gerido para satisfazer os requisitos funcionais.
+
+\section{Diagramas de Sequência}
+
+Os diagramas de sequência modelam os fluxos de interação entre os atores do sistema e os seus componentes internos ao longo do tempo, complementando o diagrama de classes ao evidenciar a ordem das mensagens trocadas em cada cenário de uso. O ficheiro-fonte dos diagramas de sequência (\textit{diagrams/Sequence Diagram/sequencediagram.md}) contempla vinte e três diagramas (SD-01 a SD-23), com as assinaturas de método alinhadas às funções reais de \textit{controller}/serviço/\textit{use-case}. Este capítulo apresenta os onze fluxos críticos principais (SD-01 a SD-11); os diagramas adicionais (SD-12 a SD-23) documentam fluxos igualmente implementados --- gestão de utilizadores, \textit{dashboards}, \textit{refresh}/troca de papel, aprovação legada de sessões, negociação de pedidos de coaching, propostas de coaching de grupo e gestão de horários (\textit{timetables}).
+
+\subsection{Autenticação e Gestão de Sessão}
+
+\textbf{SD-01 — Autenticação de Utilizador:} Descreve o fluxo de \textit{login}, desde a submissão de credenciais pelo \textit{User} até à validação pelo \textit{AuthService} com base no atributo \textit{passwordHash}. O diagrama contempla os dois caminhos alternativos: autenticação bem-sucedida com redirecionamento para o \textit{Dashboard}, e falha com apresentação de mensagem de erro.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-01.png}
+    \caption{SD-01 — Autenticação de Utilizador}
+    \label{fig:sd01}
+\end{figure}
+
+\subsection{Fluxo de Agendamento de Coaching}
+
+\textbf{SD-02 — Pedido de Marcação de Sessão:} Modela o fluxo completo de submissão de um pedido de coaching por um Aluno ou Professor. O sistema verifica a disponibilidade do estúdio e do professor antes de criar a \textit{CoachingSession} com estado \textit{PENDING\_APPROVAL} e prazo de 48 horas. Quando o pedido é submetido por um Professor, o sistema notifica automaticamente os alunos associados à sessão; quando submetido por um Aluno, é o Professor designado que recebe a notificação. O diagrama cobre os três desvios possíveis: aprovação pela Gestão (→ \textit{SCHEDULED}), rejeição com motivo (→ \textit{CANCELLED\_REJECTED}) e expiração do prazo sem ação (→ \textit{CANCELLED}, pelo \textit{job} \textit{autoCancel} de 48h), implementando as regras BR-11 e BR-15.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-02.png}
+    \caption{SD-02 — Pedido de Marcação de Sessão}
+    \label{fig:sd02}
+\end{figure}
+
+\textbf{SD-03 — Dupla Validação Pós-Sessão:} Detalha o modelo de dupla confirmação exigido pela BR-14. Após a sessão ocorrer, o Professor ou o Aluno confirma a conclusão, gerando um registo em \textit{SessionValidation}. O estado transita para \textit{FINALIZATION\_VALIDATION\_PENDING}, aguardando a aprovação final da Gestão. Uma vez validado, o estado passa a \textit{FINALIZED} e uma \textit{FinancialEntry} é gerada automaticamente, atualizando a tabela contabilística (BR-20).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-03.png}
+    \caption{SD-03 — Dupla Validação Pós-Sessão}
+    \label{fig:sd03}
+\end{figure}
+
+\textbf{SD-04 — Cancelamento com Justificação:} Representa o fluxo em que um Aluno cancela uma sessão agendada com motivo válido. O sistema persiste o \textit{cancellationReason} e transita o estado para \textit{CANCELLED\_JUSTIFIED}. A Gestão avalia a justificação e decide entre isenção total de cobrança (entrada financeira com \textit{amount: 0}) ou aplicação da taxa, com notificação ao aluno em ambos os casos.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-04.png}
+    \caption{SD-04 — Cancelamento com Justificação}
+    \label{fig:sd04}
+\end{figure}
+
+\textbf{SD-05 — Registo de No-Show:} Descreve o cenário em que o Professor regista a ausência não comunicada do aluno, indicando o \textit{studentAccountId} e uma observação obrigatória (\textit{remarks}). O sistema atualiza o \textit{AttendanceStatus} em \textit{SessionStudent} para \textit{NO\_SHOW} e o estado da sessão para \textit{No\_Show}, e aplica de imediato a penalização de 100\% do valor (BR-16) através de \textit{pricingService.applyNoShowPenalty(sessionId, teacherUserId)}, gerando uma \textit{FinancialEntry} do tipo \textit{no\_show\_fee}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-05.png}
+    \caption{SD-05 — Registo de No-Show}
+    \label{fig:sd05}
+\end{figure}
+
+\subsection{Adesão a Sessões e Disponibilidade}
+
+\textbf{SD-06 — Pedido de Adesão a Sessão Existente:} Modela o fluxo de dois estágios de aprovação para um aluno aderir a uma sessão já agendada (US-15 e US-16). O sistema verifica a capacidade disponível (\textit{maxParticipants}), cria um \textit{CoachingJoinRequest} com estado \textit{PENDING} e notifica o Professor. Após aprovação do Professor, o pedido aguarda confirmação da Gestão. Em caso de aprovação final, é criado automaticamente um registo em \textit{SessionEnrollment}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-06.png}
+    \caption{SD-06 — Pedido de Adesão a Sessão Existente}
+    \label{fig:sd06}
+\end{figure}
+
+\textbf{SD-07 — Definição de Disponibilidade do Professor:} Descreve o processo de submissão dos \textit{slots} de disponibilidade semanal pelo Professor no início do ano letivo, com persistência em \textit{TeacherAvailability}. A Gestão audita o mapa global de disponibilidades e, se validado, publica os slots para consulta dos alunos. Se forem necessários ajustes, o sistema notifica o professor para revisão (BR-29).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-07.png}
+    \caption{SD-07 — Definição de Disponibilidade do Professor}
+    \label{fig:sd07}
+\end{figure}
+
+\subsection{Inventário e Marketplace}
+
+\textbf{SD-08 — Aluguer de Item do Inventário Escolar:} Representa o fluxo de aluguer de um item pertencente à escola (\textit{isSchoolOwned: true}, \textit{rentOnly: true}). Após confirmação das condições de aluguer e processamento do pagamento via \textit{PaymentMethod}, é criado um registo em \textit{InventoryTransaction} com \textit{conditionChecked: true}. No momento da devolução, o campo \textit{returnVerified} é atualizado para \textit{true}, cumprindo a BR-26.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-08.png}
+    \caption{SD-08 — Aluguer de Item do Inventário Escolar}
+    \label{fig:sd08}
+\end{figure}
+
+\textbf{SD-09 — Transação no Marketplace Comunitário:} Modela a interação \textit{peer-to-peer} entre Comprador e Vendedor (BR-24). O Vendedor define o modo de transação (\textit{transactionMode}: RENT, SELL ou DONATE), o item é reservado (\textit{RESERVED}) durante o processo e, após confirmação do pagamento, é criado um registo em \textit{MarketplaceTransaction} e o estado do item atualizado para \textit{CLOSED}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-09.png}
+    \caption{SD-09 — Transação no Marketplace Comunitário}
+    \label{fig:sd09}
+\end{figure}
+
+\subsection{Gestão Financeira e Operação Escolar}
+
+\textbf{SD-10 — Geração e Exportação do Resumo Financeiro:} Descreve o fluxo em que a Gestão solicita um resumo para um período definido (US-12). O sistema agrega todas as \textit{FinancialEntry} do período, gera uma \textit{FinancialSummary} com o total calculado e apresenta a tabela à Gestão. Ao exportar, todas as entradas incluídas têm o campo \textit{isExported} atualizado para \textit{true} e o \textit{exportedByUserID} preenchido, garantindo rastreabilidade contabilística (BR-20).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-10.png}
+    \caption{SD-10 — Geração e Exportação do Resumo Financeiro}
+    \label{fig:sd10}
+\end{figure}
+
+\textbf{SD-11 — Gestão de Perdidos e Achados:} Cobre três sub-fluxos sequenciais: registo de um objeto encontrado pela Gestão Escolar (criação de \textit{LostAndFoundItem} com \textit{claimedStatus: false}), consulta da lista por Alunos ou Encarregados, e marcação do objeto como reclamado (\textit{claimedStatus: true}) quando o proprietário é identificado.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/SDs/SD-11.png}
+    \caption{SD-11 — Gestão de Perdidos e Achados}
+    \label{fig:sd11}
+\end{figure}
+
+
+\section{Diagrama de Estados}
+
+\subsection{Análise do Ciclo de Vida: Entidade Coaching}
+
+O diagrama de estados é uma ferramenta fundamental na modelação comportamental que permite descrever o ciclo de vida de uma entidade cujo comportamento é alterado em função do seu estado interno. No sistema gestArtes, esta representação foca-se na entidade \textit{Coaching}, mapeando todas as transições possíveis desde a submissão do pedido até à sua conclusão definitiva e registo financeiro.
+
+\subsubsection{Fase 1: Submissão e Validação Administrativa}
+O ciclo de vida inicia-se com o estado \textbf{Pending\_Approval} assim que um pedido é submetido por um Professor ou Aluno. A partir deste estado, existem três transições possíveis:
+\begin{itemize}
+    \item \textbf{Aprovação:} A transição para \textbf{Scheduled} exige uma ação explícita da Administração (\textit{Validates \& Approves}), garantindo que a ocupação dos 8 estúdios é otimizada.
+    \item \textbf{Rejeição por Indisponibilidade:} Se a Administração rejeitar o pedido por inexistência de vaga, a entidade transita para \textbf{Cancelled\_Rejected}, encerrando o ciclo sem penalização.
+    \item \textbf{Lógica de Timeout (48h):} Caso a Administração não atue dentro do prazo, o \textit{job} \textit{autoCancel} (executado de hora a hora, com \textit{EXPIRATION\_HOURS = 48}) transita automaticamente a sessão para \textbf{Cancelled}, protegendo a previsibilidade da agenda (Regra BR-15).
+\end{itemize}
+
+\subsubsection{Fase 2: Execução e Dupla Validação de Conclusão}
+Uma vez no estado \textbf{Scheduled}, a aula é considerada ``ativa'' no sistema.
+\begin{itemize}
+    \item \textbf{1ª Validação — Professor ou Aluno:} Após a aula terminar, a conclusão é confirmada pelo \textbf{Professor} (\textit{teacher.controller.confirmCompletion}) \textbf{ou} pelo \textbf{Aluno/EE} (\textit{coaching.service.confirmCompletion}). Na implementação atual, \textbf{qualquer} das duas confirmações transita a sessão diretamente de \textbf{Scheduled} para \textbf{Finalization\_Validation\_Pending}, criando um registo em \textit{SessionValidation}. \textit{(O estado \textbf{Completion\_Confirmation\_Pending} está seedado na base de dados mas não é, atualmente, usado como alvo de transição.)}
+    \item \textbf{2ª Validação — Administração (obrigatória):} A Administração realiza a validação final (\textit{adminService.finalizeSessionValidation}, passo \textit{AdminFinalValidation}), transitando para \textbf{Finalized} e gerando a \textit{FinancialEntry} (tipo \textit{session\_revenue}). Nenhuma sessão entra no sistema financeiro sem esta aprovação (Regra BR-14).
+\end{itemize}
+
+\subsubsection{Fase 3: Exceções e Penalizações Financeiras}
+O diagrama prevê dois desvios críticos ao fluxo ideal (o ``Happy Path''), ambos originados a partir do estado \textbf{Scheduled}:
+\begin{itemize}
+    \item \textbf{No-Show (Falta sem Aviso):} O Professor reporta diretamente a ausência do aluno, transitando a sessão para \textbf{No\_Show}. A penalização de 100\% do valor (Regra BR-16) é aplicada \textbf{de imediato} (\textit{pricingService.applyNoShowPenalty}), gerando uma \textit{FinancialEntry} do tipo \textit{no\_show\_fee}.
+    \item \textbf{Cancelamento Justificado:} O Aluno cancela a sessão com uma justificação obrigatória (\textit{cancelBooking}), transitando para \textbf{Cancelled\_Justified} e persistindo o \textit{CancellationReason} (Regra BR-17). Trata-se de um estado terminal.
+\end{itemize}
+
+\subsubsection{Fase 4: Finalização e Persistência Contabilística}
+O estado terminal do fluxo principal é \textbf{Finalized}.
+\begin{itemize}
+    \item A geração da \textit{FinancialEntry} (tipo \textit{session\_revenue}) é parte integrante da transição para \textbf{Finalized}, sendo a entrada associada ao \textit{FinancialSummary} mensal ativo.
+    \item Garante que apenas dados auditados e validados entram no resumo financeiro de exportação (Regra BR-20), eliminando o risco de erros manuais na contabilidade da Escola.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/statediagram.png}
+    \caption{Diagrama de Estados: Ciclo de Vida Completo do Pedido de Coaching}
+    \label{fig:detailed_state_diagram}
+\end{figure}
+
+
+\section{Diagrama de Atividades}
+O diagrama de atividades detalha o fluxo lógico do processo de agendamento de coaching, desde a intenção inicial do utilizador até à confirmação final da aula.
+
+\subsection{Descrição do Fluxo Lógico}
+O fluxo de atividades captura os seguintes momentos críticos do sistema:
+\begin{itemize}
+    \item \textbf{Início do Pedido:} O utilizador (Aluno ou Professor) inicia o processo selecionando o tipo de coaching e o horário pretendido.
+    \item \textbf{Verificação de Disponibilidade:} O sistema realiza uma verificação automática da disponibilidade do estúdio e do professor em simultâneo.
+    \item \textbf{Nós de Decisão (Guardas):} Caso os recursos estejam ocupados, o sistema retorna ao estado inicial; caso contrário, avança para a fase de submissão.
+    \item \textbf{Validação Administrativa:} O pedido entra numa fila de espera onde a Administração deve aprovar ou rejeitar a sessão num prazo de 48h (Regra BR-15).
+    \item \textbf{Finalização:} O processo termina com a notificação aos intervenientes e a atualização do calendário global da escola.
+\end{itemize}
+
+\subsection{Concorrência e Sincronização}
+O diagrama utiliza barras de sincronização (\textit{forks} e \textit{joins}) para demonstrar tarefas que podem ocorrer em paralelo, como o envio de notificações e o registo na base de dados após a aprovação.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/ACT.png}
+    \caption{Diagrama de Atividades - Fluxo de Agendamento de Coaching}
+    \label{fig:activity_diagram}
+\end{figure}
+
+% =========================
+% Arquitetura de Informação
+% =========================
+\chapter{Arquitetura de Informação}
+
+A arquitetura de informação da plataforma gestArtes organiza as funcionalidades em função do perfil de cada utilizador, seguindo uma política \textit{RBAC} que garante que cada ator acede exclusivamente às áreas relevantes para o seu papel. A navegação foi desenhada com profundidade máxima de três níveis, minimizando a carga cognitiva para uma comunidade escolar com perfis de literacia digital diversificados.
+
+Este capítulo apresenta dois artefactos de design: o \textbf{mapa de navegação}, que define a hierarquia de páginas por perfil, e os \textbf{\textit{mockups}}, que materializam visualmente os fluxos de interação prioritários.
+
+\section{Mapa de Navegação (\textit{Sitemap})}
+
+O mapa de navegação define a arquitetura de informação da plataforma \textit{web} gestArtes, organizando as páginas e funcionalidades disponíveis em função do perfil de cada utilizador autenticado. A estrutura foi desenhada para garantir que cada ator do sistema acede exclusivamente às funcionalidades relevantes para o seu papel, em linha com a política \textit{RBAC} implementada.
+
+A plataforma divide-se em quatro áreas principais, acessíveis após autenticação:
+
+\subsection{Autenticação}
+Ponto de entrada único para todos os utilizadores, composto por duas páginas: \textbf{Login}, com autenticação por email e \textit{password}, e \textbf{Recuperação de Password}, para reposição de credenciais.
+
+\subsection{Vista do Aluno}
+A navegação real do Aluno (\textit{studentNav}) organiza-se em nove entradas:
+\begin{itemize}
+    \item \textbf{Painel:} Visão geral de sessões, validações pendentes e notificações.
+    \item \textbf{Coaching:} Nova marcação e pedido com negociação de horário, e ações pós-sessão (confirmar execução, cancelar com justificação).
+    \item \textbf{Horários:} Consulta do \textit{timetable} semanal da escola.
+    \item \textbf{Histórico:} Histórico de participação em sessões.
+    \item \textbf{Pedidos de Aluguer:} Inventário escolar e estado dos pedidos de aluguer.
+    \item \textbf{Marketplace:} Navegação por anúncios e gestão dos próprios anúncios.
+    \item \textbf{Perdidos e Achados:} Consulta de objetos encontrados.
+    \item \textbf{Notificações:} \textit{Feed} de notificações da plataforma.
+    \item \textbf{Minha Conta:} Gestão de perfil pessoal.
+\end{itemize}
+\textit{(Nota: a rota \texttt{/student/inventory} redireciona para o Marketplace.)}
+
+\subsection{Vista do Professor}
+A navegação real do Professor (\textit{teacherNav}) organiza-se em sete entradas:
+\begin{itemize}
+    \item \textbf{Painel:} Resumo do dia, confirmações e pedidos de adesão pendentes.
+    \item \textbf{Coaching:} Revisão de pedidos/adesões e criação de iniciativas e de propostas de coaching de grupo.
+    \item \textbf{Horários:} Submissão de disponibilidade semanal/pontual e de ausências, e calendário pessoal.
+    \item \textbf{Confirmação de sessões:} Confirmar conclusão e registar \textit{no-show}.
+    \item \textbf{Marketplace:} Acesso partilhado com os alunos para consulta e publicação.
+    \item \textbf{Notificações:} \textit{Feed} de notificações.
+    \item \textbf{Minha Conta:} Gestão de perfil.
+\end{itemize}
+
+\subsection{Vista da Administração}
+A navegação real da Administração (\textit{adminNav}) centraliza onze entradas:
+\begin{itemize}
+    \item \textbf{Painel:} Visão global do estado do sistema, alertas e métricas operacionais.
+    \item \textbf{Validações:} Aprovação de marcações (prazo 48h), validações finais pós-sessão, adesões e disponibilidades de professores.
+    \item \textbf{Horários:} Gestão dos \textit{timetables} (mapas semanais editáveis).
+    \item \textbf{Estúdios:} Configuração dos 8 estúdios, modalidades compatíveis e ocupação detalhada.
+    \item \textbf{Finanças:} Geração e exportação (CSV) de resumos financeiros.
+    \item \textbf{Inventário:} CRUD de itens, aprovação de alugueres e verificação/rejeição de devoluções.
+    \item \textbf{Marketplace:} Moderação dos anúncios da comunidade.
+    \item \textbf{Perdidos e Achados:} Registo e gestão de objetos.
+    \item \textbf{Utilizadores:} Gestão de contas, papéis, reposição de \textit{password} e revogação de sessões.
+    \item \textbf{Auditoria:} Consulta do registo de auditoria (RNF07).
+    \item \textbf{Notificações:} Envio de \textit{broadcasts} à comunidade.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, height=0.9\textheight, keepaspectratio]{media/diagrams/sitemap.png}
+    \caption{Mapa de Navegação da Plataforma gestArtes}
+    \label{fig:sitemap}
+\end{figure}
+
+\section{Mockups}
+
+Esta secção apresenta os protótipos de interface do sistema gestArtes, organizados
+por perfil de utilizador. Os mockups cobrem os principais fluxos funcionais
+identificados nas user stories, ilustrando a navegação, a disposição dos elementos
+e as interações esperadas em cada ecrã.
+
+% ─────────────────────────────────────────
+\subsection{Autenticação}
+% ─────────────────────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/login.png}
+    \caption{Mockup — Página de Login}
+    \label{fig:mockup-login}
+\end{figure}
+
+% ─────────────────────────────────────────
+\subsection{Perfil de Administrador}
+% ─────────────────────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/admin/admin-0.png}
+    \caption{Mockup Admin — Dashboard}
+    \label{fig:mockup-admin-0}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/admin/admin-1.png}
+    \caption{Mockup Admin — Página de Validações}
+    \label{fig:mockup-admin-1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/admin/admin-2.png}
+    \caption{Mockup Admin — Validações (continuação)}
+    \label{fig:mockup-admin-2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/admin/admin-3.png}
+    \caption{Mockup Admin — Gestão de Estúdios}
+    \label{fig:mockup-admin-3}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/admin/admin-4.png}
+    \caption{Mockup Admin — Ocupação Detalhada de Estúdios}
+    \label{fig:mockup-admin-4}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/admin/admin-5.png}
+    \caption{Mockup Admin — Gestão de Utilizadores}
+    \label{fig:mockup-admin-5}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/admin/admin-6.png}
+    \caption{Mockup Admin — Inventário Escolar}
+    \label{fig:mockup-admin-6}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/admin/admin-7.png}
+    \caption{Mockup Admin — Finanças}
+    \label{fig:mockup-admin-7}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/admin/admin-8.png}
+    \caption{Mockup Admin — Auditoria}
+    \label{fig:mockup-admin-8}
+\end{figure}
+
+% ─────────────────────────────────────────
+\subsection{Perfil de Aluno / Encarregado de Educação}
+% ─────────────────────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-0.png}
+    \caption{Mockup Aluno — Dashboard}
+    \label{fig:mockup-aluno-0}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-1.png}
+    \caption{Mockup Aluno — Pop-up de Notificações}
+    \label{fig:mockup-aluno-1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-2.png}
+    \caption{Mockup Aluno — Horário}
+    \label{fig:mockup-aluno-2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-3.png}
+    \caption{Mockup Aluno — Horário (continuação)}
+    \label{fig:mockup-aluno-3}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-4.png}
+    \caption{Mockup Aluno — Marcação de Coaching}
+    \label{fig:mockup-aluno-4}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-5.png}
+    \caption{Mockup Aluno — Inventário Escolar}
+    \label{fig:mockup-aluno-5}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-6.png}
+    \caption{Mockup Aluno — Marketplace}
+    \label{fig:mockup-aluno-6}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-7.png}
+    \caption{Mockup Aluno — Conversas do Marketplace}
+    \label{fig:mockup-aluno-7}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-8.png}
+    \caption{Mockup Aluno — Criar Anúncio no Marketplace}
+    \label{fig:mockup-aluno-8}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-9.png}
+    \caption{Mockup Aluno — Perdidos e Achados}
+    \label{fig:mockup-aluno-9}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/aluno/aluno-10.png}
+    \caption{Mockup Aluno — Minha Conta}
+    \label{fig:mockup-aluno-10}
+\end{figure}
+
+% ─────────────────────────────────────────
+\subsection{Perfil de Professor}
+% ─────────────────────────────────────────
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/prof/prof-0.png}
+    \caption{Mockup Professor — Dashboard}
+    \label{fig:mockup-prof-0}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/prof/prof-1.png}
+    \caption{Mockup Professor — Disponibilidade}
+    \label{fig:mockup-prof-1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/prof/prof-2.png}
+    \caption{Mockup Professor — Horários}
+    \label{fig:mockup-prof-2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/prof/prof-3.png}
+    \caption{Mockup Professor — Coaching (Confirmações)}
+    \label{fig:mockup-prof-3}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/prof/prof-4.png}
+    \caption{Mockup Professor — Inventário Escolar}
+    \label{fig:mockup-prof-4}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{media/mockup/prof/prof-5.png}
+    \caption{Mockup Professor — Marketplace}
+    \label{fig:mockup-prof-5}
+\end{figure}
+
+
+\chapter{Gestão do Projeto}
+
+O projeto foi gerido com a metodologia \textbf{Scrum}, em sprints de duas semanas,
+utilizando o \textbf{GitHub Projects} como ferramenta de \textit{Application Lifecycle
+Management} (ALM) para criação, atribuição e acompanhamento de todos os \textit{Work Items}.
+
+% -------------------------
+\section{Equipa Scrum}
+
+\begin{itemize}
+    \item \textbf{Product Owner:} Afonso Corte-Real
+    \item \textbf{Scrum Master:} Pedro Andrade
+    \item \textbf{Developer Team:} Afonso Corte-Real, Alexandre Machado,
+    Fernando Coelho, Pedro Andrade, Rodrigo Pinheiro
+\end{itemize}
+
+% -------------------------
+\section{Sprint Backlogs — Milestone 1}
+
+\subsection{Sprint 1 — Especificação do Sistema}
+
+\textbf{Período:} 13 de fevereiro a 26 de fevereiro de 2025 \\
+\textbf{Sprint Goal:} Levantamento inicial de requisitos, modelação de processos 
+de negócio e definição das User Stories.
+
+\begin{longtable}{@{}p{0.06\textwidth} | p{0.08\textwidth} | p{0.55\textwidth} | p{0.20\textwidth}@{}}
+\toprule
+\rowcolor{headerblue}
+\textbf{\textcolor{white}{ID}} & \textbf{\textcolor{white}{Prior.}} & \textbf{\textcolor{white}{Tarefa}} & \textbf{\textcolor{white}{Responsável}} \\ \midrule
+\endfirsthead
+
+\toprule
+\rowcolor{headerblue}
+\textbf{\textcolor{white}{ID}} & \textbf{\textcolor{white}{Prior.}} & \textbf{\textcolor{white}{Tarefa}} & \textbf{\textcolor{white}{Responsável}} \\ \midrule
+\endhead
+
+1  & P2 & Configuração de Repositórios e Proteção de Branches  & Afonso    \\ \midrule
+2  & P1 & Definição da Stack Tecnológica                        & Fernando  \\ \midrule
+2  & P1 & Doc: Modelação de Processos de Negócio (BPMN)         & Pedro     \\ \midrule
+3  & P1 & Doc: Stakeholders e Diagrama de Casos de Uso          & Rodrigo   \\ \midrule
+4  & P1 & Doc: Definição de User Stories                        & Fernando  \\ \midrule
+5  & P1 & Doc: Modelo de Dados (ERD)                            & Afonso    \\ \midrule
+11 & P2 & Doc: Diagrama de Atividades                           & Alexandre \\ \midrule
+13 & P1 & Design: Arquitetura de Informação e Sitemap           & Alexandre \\ \midrule
+16 & P1 & Doc: BPMN — Processo de Reserva de Coaching          & Pedro     \\ \midrule
+17 & P1 & Doc: BPMN — Ciclo de Validação Pós-Sessão            & Pedro     \\ \midrule
+18 & P1 & Doc: BPMN — Aluguer de Inventário                    & Pedro     \\ \midrule
+19 & P1 & Doc: BPMN — Configuração de Disponibilidade          & Pedro     \\ \midrule
+20 & P1 & Doc: BPMN — Transação no Marketplace                 & Pedro     \\ \midrule
+21 & P1 & Doc: Regras de Negócio                               & Fernando  \\ \midrule
+22 & P1 & US-01: Criar Iniciativa de Coaching                   & Fernando  \\ \midrule
+23 & P1 & US-02: Aprovar Iniciativa de Coaching                 & Fernando  \\ \midrule
+24 & P1 & US-04: Confirmar Conclusão de Sessão                  & Fernando  \\ \midrule
+25 & P1 & US-05: Aceder ao Inventário Digital                   & Fernando  \\ \midrule
+26 & P1 & US-06: Adicionar Item ao Inventário                   & Fernando  \\ \midrule
+27 & P1 & US-07: Ver Disponibilidade de Estúdios                & Fernando  \\ \midrule
+28 & P1 & US-08: Gerir Disponibilidade do Professor             & Fernando  \\ \midrule
+29 & P1 & US-09: Receber Notificações                           & Fernando  \\ \midrule
+30 & P1 & US-10: Cancelar Sessão de Coaching                    & Fernando  \\ \midrule
+31 & P1 & US-11: Ver Histórico de Participação                  & Fernando  \\ \midrule
+32 & P1 & US-12: Gerar Resumo Financeiro                        & Fernando  \\ \midrule
+33 & P1 & US-13: Validar Conclusão de Sessão                    & Fernando  \\ \midrule
+34 & P1 & US-14: Otimizar Uso de Estúdios                       & Fernando  \\ \midrule
+35 & P1 & US-03: Agendar Sessão de Coaching                     & Fernando  \\ \midrule
+36 & P1 & US-15: Pedir para Entrar em Sessão Existente          & Fernando  \\ \midrule
+37 & P1 & US-16: Validar Pedido de Adesão a Sessão              & Fernando  \\ \midrule
+38 & P1 & US-17: Adicionar Item ao Marketplace Comunitário      & Fernando  \\ \bottomrule
+\end{longtable}
+
+\subsection{Sprint 2 — Especificação do Sistema}
+\textbf{Período:} 26 de fevereiro a 13 de março de 2025 \\
+\textbf{Sprint Goal:} Conclusão da modelação estrutural e comportamental, 
+mockups de alta fidelidade e requisitos não funcionais.
+
+\begin{longtable}{@{}p{0.06\textwidth} | p{0.08\textwidth} | p{0.55\textwidth} | p{0.20\textwidth}@{}}
+\toprule
+\rowcolor{headerblue}
+\textbf{\textcolor{white}{ID}} & \textbf{\textcolor{white}{Prior.}} & \textbf{\textcolor{white}{Tarefa}} & \textbf{\textcolor{white}{Responsável}} \\ \midrule
+\endfirsthead
+
+\toprule
+\rowcolor{headerblue}
+\textbf{\textcolor{white}{ID}} & \textbf{\textcolor{white}{Prior.}} & \textbf{\textcolor{white}{Tarefa}} & \textbf{\textcolor{white}{Responsável}} \\ \midrule
+\endhead
+
+6  & P1 & Doc: Arquitetura de Classes do Sistema                & Fernando  \\ \midrule
+7  & P2 & Doc: Diagramas de Sequência de Interações Críticas    & Pedro     \\ \midrule
+9  & P2 & Intro: Contextualização e Relevância                  & Afonso    \\ \midrule
+10 & P2 & Design: Mockups de Alta Fidelidade (Figma)            & Alexandre \\ \midrule
+12 & P1 & Doc: Requisitos Não Funcionais (NFR)                  & Rodrigo   \\ \midrule
+14 & P2 & Doc: Schema de Base de Dados e Plano de Migração      & Pedro     \\ \midrule
+38 & P1 & Doc: Diagrama de Estados — Sessão de Coaching         & Pedro     \\ \bottomrule
+\end{longtable}
+
+% =========================
+% Conclusão e Próximos Passos
+% =========================
+\chapter{Conclusão e Próximos Passos}
+
+\section{Conclusão da Milestone 1}
+
+O presente relatório documenta a fase de Análise de Requisitos e Modelação da plataforma \textbf{gestArtes}, desenvolvida no âmbito do projeto para a Escola Entartes. Ao longo desta milestone, a equipa procedeu ao levantamento e formalização de todos os artefactos necessários para suportar o desenvolvimento do sistema nas fases seguintes.
+
+Foram identificados e documentados os principais problemas operacionais da escola --- a gestão manual de sessões de \textit{coaching} em Excel, a comunicação dispersa por grupos de WhatsApp e a ausência de um inventário digital estruturado --- e proposta uma plataforma Web que centraliza e automatiza estes processos críticos. A especificação resultante abrange \textbf{18 User Stories}, \textbf{31 Regras de Negócio} e \textbf{8 Requisitos Não Funcionais}, suportados por um conjunto coerente de diagramas UML e BPMN que cobrem os domínios estrutural e comportamental do sistema.
+
+A modelação dos cinco processos de negócio não-CRUD --- reserva de coaching, ciclo de dupla validação, aluguer de inventário, configuração de disponibilidade e marketplace comunitário --- demonstra a complexidade transacional do sistema e a necessidade de mecanismos robustos de controlo de estado e fluxo financeiro.
+
+\section{Próximos Passos}
+
+Com a Milestone 1 concluída, a equipa dará início à fase de desenvolvimento ativo do \textit{back-end}. Os trabalhos imediatos, a realizar nas sprints seguintes, estão organizados por prioridade:
+
+\subsection{Milestone vBeta — Desenvolvimento do Back-End}
+O principal objetivo da fase seguinte é a implementação de todas as funcionalidades do \textit{back-end}, com exposição via API RESTful. As prioridades de implementação seguem a ordem do Product Backlog:
+\begin{itemize}
+    \item \textbf{Módulo de Autenticação e Controlo de Acessos (RBAC):} Implementação das entidades \textit{User}, \textit{Role} e \textit{StudentAccount}, com suporte a JWT ou mecanismo equivalente.
+    \item \textbf{Motor de Agendamento de Coaching:} Implementação do fluxo completo das US-01 a US-04 e US-15/US-16, incluindo a lógica de \textit{timeout} de 48h (BR-15) e o ciclo de dupla validação (BR-14).
+    \item \textbf{Módulo de Inventário e Marketplace:} Implementação das US-05 a US-06 e US-17, com validação de estado de conservação e rastreabilidade de transações.
+    \item \textbf{Sistema de Notificações:} Implementação da US-09, substituindo a dependência de grupos de WhatsApp por notificações centralizadas na plataforma.
+    \item \textbf{Módulo Financeiro:} Implementação das US-12 e US-13, com geração automática de tabelas resumo para exportação contabilística (BR-20 e BR-21).
+\end{itemize}
+
+\subsection{Infraestrutura e Qualidade}
+Em paralelo com o desenvolvimento funcional, a equipa deverá estabelecer:
+\begin{itemize}
+    \item Configuração de \textit{pipelines} de Integração Contínua (CI) no repositório GitHub.
+    \item Implementação de testes unitários e de integração para todos os endpoints críticos.
+    \item Atualização contínua do ALM (GitHub Projects) com os Work Items das novas sprints.
+\end{itemize}
+
+
+\end{document}

@@ -15,9 +15,9 @@ sequenceDiagram
     activate AuthController
     AuthController->>AuthController: findUserByEmail(email)
     AuthController->>AuthController: bcrypt.compare(password, PasswordHash)
-    AuthController->>JwtService: issueAuthTokens(user)
-    JwtService-->>AuthController: { accessToken, refreshToken }
-    AuthController-->>Platform: { user, accessToken }
+    AuthController->>JwtService: issueAuthTokens({ user, role, ip, userAgent })
+    JwtService-->>AuthController: { accessToken, refreshToken, refreshTokenExpiresAt }
+    AuthController-->>Platform: { user, role, accessToken, tokenType, expiresIn }
     Platform-->>User: redirect to dashboard
     deactivate AuthController
     deactivate Platform
@@ -37,8 +37,8 @@ sequenceDiagram
     participant NotificationController as NotificationController
 
     Student->>Platform: select modality and schedule
-    Platform->>CoachingController: getAvailableSlots(weekStart, modalityId)
-    CoachingController->>CoachingService: getAvailableSlots(weekStart, modalityId)
+    Platform->>CoachingController: getAvailableSlots(weekStart, modalityId, teacherId)
+    CoachingController->>CoachingService: getAvailableSlots({ weekStart, startDate, endDate, teacherId, modalityId, authenticatedUserId })
     CoachingService-->>CoachingController: { slots }
     CoachingController-->>Platform: { slots }
     Platform-->>Student: display available slots
@@ -46,7 +46,7 @@ sequenceDiagram
     Student->>Platform: createBooking(payload)
     Platform->>CoachingController: createBooking(payload)
     activate CoachingController
-    CoachingController->>CoachingUseCases: createBookingRequest.execute(payload)
+    CoachingController->>CoachingUseCases: createBookingRequest.execute({ req, studentUserId, payload })
     CoachingUseCases-->>CoachingController: { session }
     CoachingController-->>Platform: { session }
     deactivate CoachingController
@@ -68,34 +68,38 @@ sequenceDiagram
     actor Admin
     participant Platform as Platform
     participant CoachingController as CoachingController
+    participant CoachingService as CoachingService
     participant TeacherController as TeacherController
     participant AdminController as AdminController
-    participant SessionService as SessionService
-    participant FinanceService as FinanceService
+    participant AdminService as AdminService
+    participant PricingService as PricingService
 
-    Note over CoachingController: Session Status: SCHEDULED
+    Note over CoachingController: Session Status: Scheduled
 
     alt Teacher confirms completion
         Teacher->>Platform: confirmCompletion(sessionId)
         Platform->>TeacherController: confirmCompletion(sessionId)
-        TeacherController->>TeacherController: confirmCompletion(sessionId)
-        TeacherController-->>Platform: { session }
+        Note over TeacherController: creates SessionValidation (TeacherConfirmation),<br/>Session → Finalization_Validation_Pending
+        TeacherController-->>Platform: { validationId, sessionId }
         Platform-->>Teacher: Completion confirmed
     else Student confirms completion
         Student->>Platform: confirmCompletion(sessionId)
-        Platform->>CoachingController: confirmCompletion(sessionId, studentUserId)
-        CoachingController->>CoachingController: confirmCompletion(sessionId, studentUserId)
-        CoachingController-->>Platform: { session }
+        Platform->>CoachingController: confirmCompletion(sessionId)
+        CoachingController->>CoachingService: confirmCompletion(sessionId, studentUserId)
+        Note over CoachingService: creates SessionValidation (StudentConfirmation),<br/>Session → Finalization_Validation_Pending
+        CoachingService-->>CoachingController: { validationId, sessionId, step, validatedAt }
+        CoachingController-->>Platform: { validationId, sessionId }
         Platform-->>Student: Completion confirmed
     end
 
     Admin->>Platform: finalizeSessionValidation(sessionId)
     Platform->>AdminController: finalizeSessionValidation(sessionId)
-    AdminController->>SessionService: finalizeSessionValidation(sessionId)
-    SessionService-->>AdminController: { finalized: true }
-    AdminController->>FinanceService: generateFromSession(sessionId)
-    FinanceService-->>AdminController: { entries }
-    AdminController-->>Platform: { session }
+    AdminController->>AdminService: finalizeSessionValidation({ sessionId, adminUserId })
+    Note over AdminService: creates SessionValidation (AdminFinalValidation),<br/>Session → Finalized
+    AdminService->>PricingService: generateFinancialEntryOnFinalization(sessionId, adminUserId, tx)
+    PricingService-->>AdminService: { EntryID } (FinancialEntry type=session_revenue)
+    AdminService-->>AdminController: { sessionId, validationId, finalizedAt, financialEntryId }
+    AdminController-->>Platform: { sessionId, validationId, finalizedAt, financialEntryId }
     Platform-->>Admin: Validation finalized
 ```
 
@@ -111,7 +115,7 @@ sequenceDiagram
     participant CoachingService as CoachingService
     participant NotificationController as NotificationController
 
-    Note over CoachingController: Session Status: SCHEDULED
+    Note over CoachingController: Session Status: Scheduled
     Student->>Platform: cancelBooking(sessionId, justification)
     Platform->>CoachingController: cancelBooking(sessionId, justification)
     activate CoachingController
@@ -134,19 +138,20 @@ sequenceDiagram
     actor Teacher
     participant Platform as Platform
     participant TeacherController as TeacherController
-    participant CoachingService as CoachingService
+    participant PricingService as PricingService
     participant NotificationController as NotificationController
 
-    Note over TeacherController: Session Status: SCHEDULED – student absent
-    Teacher->>Platform: registerNoShow(sessionId)
-    Platform->>TeacherController: registerNoShow(sessionId)
-    TeacherController->>CoachingService: registerNoShow(sessionId)
-    CoachingService-->>TeacherController: { session }
-    TeacherController-->>Platform: { session }
+    Note over TeacherController: Session Status: Scheduled – student absent
+    Teacher->>Platform: registerNoShow(sessionId, studentAccountId, remarks)
+    Platform->>TeacherController: registerNoShow(sessionId, studentAccountId, remarks)
+    Note over TeacherController: SessionStudent.AttendanceStatus → NO_SHOW,<br/>Session → No_Show, SessionValidation (NoShowRecorded)
+    TeacherController->>PricingService: applyNoShowPenalty(sessionId, teacherUserId)
+    PricingService-->>TeacherController: { FinancialEntry (no_show_fee, full price) }
+    TeacherController-->>Platform: { sessionId, studentAccountId, status: 'no_show_registered' }
     Platform-->>Teacher: No-show recorded
 
-    Platform->>NotificationController: broadcastNotification()
-    NotificationController-->>Teacher: Notification sent to Management
+    Note over TeacherController: createAdminNotifications() + student notification (in-DB)
+    NotificationController-->>Teacher: Management & student notified
 ```
 
 ---
@@ -257,7 +262,7 @@ sequenceDiagram
     participant VerifyReturnUseCase as VerifyReturnUseCase
 
     Student->>Platform: browseInventory()
-    Platform->>InventoryController: listItems(query)
+    Platform->>InventoryController: getItems(query)
     InventoryController->>InventoryService: listItems(query)
     InventoryService-->>InventoryController: { items }
     InventoryController-->>Platform: { items }
@@ -265,21 +270,21 @@ sequenceDiagram
 
     Student->>Platform: requestRental(itemId, rentalPeriod, paymentMethodId)
     Platform->>InventoryController: createRental(payload)
-    InventoryController->>CreateRentalUseCase: execute(renterId, payload)
+    InventoryController->>CreateRentalUseCase: execute({ req, renterId, payload })
     CreateRentalUseCase-->>InventoryController: { rental, checkoutSummary }
     InventoryController-->>Platform: { rental, checkoutSummary }
     Platform-->>Student: Rental created (Awaiting Approval)
 
     Admin->>Platform: listAdminRentals()
     Platform->>AdminInventoryController: getRentals()
-    AdminInventoryController->>InventoryService: listRentals()
+    AdminInventoryController->>InventoryService: listAllRentals()
     InventoryService-->>AdminInventoryController: { rentals }
     AdminInventoryController-->>Platform: { rentals }
     Platform-->>Admin: Display rentals queue
 
-    Admin->>Platform: approveRental(rentalId)
+    Admin->>Platform: approveRental(rentalId, decision)
     Platform->>AdminInventoryController: approveRental(rentalId)
-    AdminInventoryController->>ApproveRentalUseCase: execute(rentalId, adminUserId)
+    AdminInventoryController->>ApproveRentalUseCase: execute({ rentalId, payload })
     ApproveRentalUseCase-->>AdminInventoryController: { rental }
     AdminInventoryController-->>Platform: { rental }
     Platform-->>Admin: Rental approved
@@ -293,7 +298,7 @@ sequenceDiagram
 
     Admin->>Platform: verifyReturn(rentalId, conditionStatus, conditionNotes)
     Platform->>AdminInventoryController: verifyReturn(rentalId, payload)
-    AdminInventoryController->>VerifyReturnUseCase: execute(rentalId, payload, adminUserId)
+    AdminInventoryController->>VerifyReturnUseCase: execute({ rentalId, payload })
     VerifyReturnUseCase-->>AdminInventoryController: { rental }
     AdminInventoryController-->>Platform: { rental }
     Platform-->>Admin: Return verified
@@ -320,21 +325,21 @@ sequenceDiagram
     Platform-->>Seller: Listing submitted (Pending Review)
 
     Admin->>Platform: openMarketplaceModeration()
-    Platform->>AdminMarketplaceController: listPendingListings()
+    Platform->>AdminMarketplaceController: getListings(status=pending)
     AdminMarketplaceController-->>Platform: { listings }
     Platform-->>Admin: Display pending listings
 
     alt Admin approves listing
         Admin->>Platform: approveListing(listingId)
         Platform->>AdminMarketplaceController: approveListing(listingId)
-        AdminMarketplaceController->>ApproveListingUseCase: execute(listingId, adminUserId)
+        AdminMarketplaceController->>ApproveListingUseCase: execute({ listingId })
         ApproveListingUseCase-->>AdminMarketplaceController: { listing }
         AdminMarketplaceController-->>Platform: { listing }
         Platform-->>Admin: Listing approved
     else Admin rejects listing
         Admin->>Platform: rejectListing(listingId, reason)
         Platform->>AdminMarketplaceController: rejectListing(listingId, reason)
-        AdminMarketplaceController->>RejectListingUseCase: execute(listingId, reason, adminUserId)
+        AdminMarketplaceController->>RejectListingUseCase: execute({ listingId, reason })
         RejectListingUseCase-->>AdminMarketplaceController: { listing }
         AdminMarketplaceController-->>Platform: { listing }
         Platform-->>Admin: Listing rejected
@@ -464,7 +469,7 @@ sequenceDiagram
 
     Admin->>Platform: createUser(userData)
     Platform->>AdminController: createUser(userData)
-    AdminController->>AdminUserUseCases: execute(payload)
+    AdminController->>AdminUserUseCases: createUser.execute({ payload })
     AdminUserUseCases-->>AdminController: { user }
     AdminController-->>Platform: { user }
     Platform-->>Admin: User created
@@ -542,7 +547,7 @@ sequenceDiagram
     participant NotificationService as NotificationService
 
     User->>Platform: getNotifications()
-    Platform->>NotificationController: getNotifications()
+    Platform->>NotificationController: getAll()
     NotificationController->>NotificationService: getAllByUser(userId)
     NotificationService-->>NotificationController: { notifications }
     NotificationController-->>Platform: { notifications }
@@ -556,7 +561,7 @@ sequenceDiagram
     Platform-->>User: Notification marked as read
 
     User->>Platform: removeNotification(notificationId)
-    Platform->>NotificationController: removeNotification(notificationId)
+    Platform->>NotificationController: remove(notificationId)
     NotificationController->>NotificationService: remove(notificationId, userId)
     NotificationService-->>NotificationController: { success }
     NotificationController-->>Platform: { success: true }
@@ -662,11 +667,11 @@ sequenceDiagram
 
     User->>Platform: openApp()
     activate Platform
-    Platform->>AuthController: refreshToken()
+    Platform->>AuthController: refresh()
     activate AuthController
-    AuthController->>JwtService: rotateRefreshToken(refreshToken)
-    JwtService-->>AuthController: { accessToken, newRefreshToken }
-    AuthController-->>Platform: { accessToken }
+    AuthController->>JwtService: rotateRefreshToken(refreshToken, { ip, userAgent, role })
+    JwtService-->>AuthController: { user, role, accessToken, refreshToken, refreshTokenExpiresAt }
+    AuthController-->>Platform: { user, role, accessToken, tokenType, expiresIn }
     deactivate AuthController
     Platform-->>User: App authenticated
     deactivate Platform
@@ -707,15 +712,126 @@ sequenceDiagram
 
     Admin->>Platform: approveSession(sessionId)
     Platform->>AdminController: approveSession(sessionId)
-    AdminController->>AdminSessionUseCases: execute(sessionId)
-    AdminSessionUseCases-->>AdminController: { session }
-    AdminController-->>Platform: { session }
-    Platform-->>Admin: Session approved
+    AdminController->>AdminSessionUseCases: approveSession.execute({ adminUserId, payload: { sessionId } })
+    AdminSessionUseCases-->>AdminController: { sessionId, statusId, userIdsToNotify }
+    AdminController-->>Platform: { sessionId, statusId }
+    Platform-->>Admin: Session approved (→ Scheduled)
 
     Admin->>Platform: rejectSession(sessionId, reason)
     Platform->>AdminController: rejectSession(sessionId, reason)
-    AdminController->>AdminSessionUseCases: execute(sessionId, reason)
-    AdminSessionUseCases-->>AdminController: { session }
-    AdminController-->>Platform: { session }
-    Platform-->>Admin: Session rejected
+    AdminController->>AdminSessionUseCases: rejectSession.execute({ adminUserId, payload: { sessionId, reviewNotes } })
+    AdminSessionUseCases-->>AdminController: { sessionId, userIdsToNotify }
+    AdminController-->>Platform: { sessionId }
+    Platform-->>Admin: Session rejected (→ Cancelled_Rejected)
+```
+
+---
+
+## SD-21: Coaching Request with Schedule Negotiation
+
+```mermaid
+sequenceDiagram
+    actor Student
+    actor Teacher
+    actor Admin
+    participant Platform as Platform
+    participant CoachingController as CoachingController
+    participant CoachingRequestService as CoachingRequestService
+
+    Student->>Platform: createRequest(modalityId, teacherId, preferredStartTime)
+    Platform->>CoachingController: createRequest(payload)
+    CoachingController->>CoachingRequestService: createCoachingRequest({ studentUserId, payload })
+    CoachingRequestService-->>CoachingController: { request (Status: PENDING_TEACHER_REVIEW) }
+    CoachingController-->>Platform: { request }
+    Platform-->>Teacher: Notify teacher (new coaching request)
+
+    Teacher->>Platform: reviewRequestAsTeacher(requestId, decision)
+    Platform->>CoachingController: reviewRequestAsTeacher(requestId)
+    CoachingController->>CoachingRequestService: reviewRequestAsTeacher({ requestId, teacherUserId, payload })
+    alt Teacher approves directly
+        CoachingRequestService-->>CoachingController: { request (PENDING_ADMIN_APPROVAL) }
+    else Teacher suggests new time
+        CoachingRequestService-->>CoachingController: { request (PENDING_STUDENT_CONFIRMATION) }
+        CoachingController-->>Platform: notify student (new time suggested)
+        Student->>Platform: respondToTeacherSuggestion(requestId, accept|reject)
+        Platform->>CoachingController: respondToTeacherSuggestion(requestId)
+        CoachingController->>CoachingRequestService: respondToTeacherSuggestion({ requestId, studentUserId, payload })
+        CoachingRequestService-->>CoachingController: { request (PENDING_ADMIN_APPROVAL | cancelled) }
+    end
+
+    Admin->>Platform: reviewRequestAsAdmin(requestId, decision, studioId)
+    Platform->>CoachingController: reviewRequestAsAdmin(requestId)
+    CoachingController->>CoachingRequestService: reviewRequestAsAdmin({ requestId, adminUserId, payload })
+    CoachingRequestService-->>CoachingController: { request (APPROVED → ConfirmedSessionID | REJECTED) }
+    CoachingController-->>Platform: { request }
+    Platform-->>Student: Notify final decision
+```
+
+---
+
+## SD-22: Group Coaching Proposal (Teacher-initiated, multi-student)
+
+```mermaid
+sequenceDiagram
+    actor Teacher
+    actor Admin
+    participant Platform as Platform
+    participant GroupController as GroupCoachingProposalController
+
+    Teacher->>Platform: searchStudents(query)
+    Platform->>GroupController: searchStudents(query)
+    GroupController-->>Platform: { students }
+
+    Teacher->>Platform: createProposal(modalityId, startTime, endTime, studentUserIds)
+    Platform->>GroupController: createProposal(payload)
+    GroupController-->>Platform: { proposal (Participants[]) }
+    Platform-->>Teacher: Proposal submitted (Pending Admin)
+
+    Admin->>Platform: listAdminProposals()
+    Platform->>GroupController: listAdminProposals()
+    GroupController-->>Platform: { proposals }
+
+    Admin->>Platform: getCompatibleStudios(proposalId)
+    Platform->>GroupController: getCompatibleStudios(proposalId)
+    GroupController-->>Platform: { studios }
+
+    Admin->>Platform: reviewProposal(proposalId, decision, studioId)
+    Platform->>GroupController: reviewProposal(proposalId)
+    GroupController-->>Platform: { proposal (APPROVED → CoachingSession + SessionStudent | REJECTED) }
+    Platform-->>Teacher: Notify decision
+```
+
+---
+
+## SD-23: Admin Timetable Management (Weekly School Schedule)
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    actor User
+    participant Platform as Platform
+    participant TimetableController as TimetableController
+
+    Admin->>Platform: createTimetable(label)
+    Platform->>TimetableController: createTimetable(payload)
+    TimetableController-->>Platform: { timetable }
+
+    Admin->>Platform: createSlot(timetableId, dayOfWeek, startMinutes, endMinutes, teacher/studio/modality)
+    Platform->>TimetableController: createSlot(timetableId, payload)
+    TimetableController-->>Platform: { slot }
+
+    alt Update slot
+        Admin->>Platform: updateSlot(slotId, data)
+        Platform->>TimetableController: updateSlot(slotId)
+        TimetableController-->>Platform: { slot }
+    else Delete slot
+        Admin->>Platform: deleteSlot(slotId)
+        Platform->>TimetableController: deleteSlot(slotId)
+        TimetableController-->>Platform: { ok }
+    end
+
+    User->>Platform: openTimetable()
+    Platform->>TimetableController: listTimetables() / getTimetable(id)
+    TimetableController-->>Platform: { timetables / timetable (active) }
+    Platform-->>User: Display weekly schedule
 ```
